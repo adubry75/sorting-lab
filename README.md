@@ -12,6 +12,14 @@ Select an algorithm and press **Start sorting**. Pause and use **Step** to advan
 
 The inputs are permutations of the unique integer ranks 0 through n−1, with sizes from 64 to 50,000. For Bubble, Gnome, Cycle, Selection, and other quadratic sorts, start with 256 or 1,024 elements. All algorithms support 50,000, but slow methods can require billions of operations. The controls remain responsive and Reset cancels the worker immediately.
 
+### Sound
+
+Sound starts after you click **Start sorting** or **Step**. Use **Sound on/off** and the volume slider to control it. Pause, reset, completion, and hiding the tab silence the instrument. **Run without animation** is silent.
+
+The note mapping comes from [the original 2022 MidiSys.java](https://github.com/66-m/sorting-visualizer/blob/d70a61e48f649a9f66c681816f02a90145596c79/src/main/java/io/github/compilerstuck/Sound/MidiSys.java): MIDI note `28 + floor(40 * (value + 1) / length)`, velocity 90, Electric Piano 1, and one note at a time with the previous note cut on each retrigger. Pitch follows the written value, not swap distance or circle angle. Comparisons and auxiliary writes don't trigger notes. When a display batch contains several writes, the highest written index wins, following the original visualization's ascending-index draw order. Animation batching differs from the Java application, so the note sequence and timing can differ from the recording.
+
+The voice is an independent, browser-native Web Audio synthesis of the electric-piano character, informed by the harmonic spectrum and filter envelope of [OpenJDK's fallback Electric Piano 1](https://github.com/openjdk/jdk/blob/master/src/java.desktop/share/classes/com/sun/media/sound/EmergencySoundbank.java). It is not a byte-identical rendering of the video's MIDI soundbank, which isn't bundled with the original project. Browser adaptation adds a sub-millisecond cutoff taper to reduce clicks, limits a held note to eight seconds, and gives individual steps a short audition. No Java, downloaded samples, MIDI hardware, or external audio dependencies are used; sound works in the standalone HTML too.
+
 **Run without animation** restores the same input and seed, then processes large batches with the main circle held still until completion. The compute counter measures time spent advancing the instrumented JavaScript algorithm. It excludes pauses, rendering, worker messaging, and waiting between frames. It includes generator and counter overhead and is not a calibrated benchmark or a comparison with Java/.NET.
 
 ## Reading the picture
@@ -29,6 +37,7 @@ The auxiliary workspace shows buffers or counts. Larger arrays are reduced to 10
 Source files are deliberately framework-free:
 
 - `engine.js`: the 20 generator-based algorithms and worker protocol.
+- `audio.js`: MIDI pitch mapping and the Web Audio electric-piano voice.
 - `app.js`: input generation, playback, circle rasterization, controls, and optional WebMCP tools.
 - `page.html` and `style.css`: interface and appearance.
 - `build.cjs`: combines the sources and license into a self-contained HTML file.
@@ -39,6 +48,7 @@ With Node.js 22 or later installed:
 
 ```text
 node test.cjs
+node test-audio.cjs
 node build.cjs
 node serve.cjs
 ```
@@ -56,7 +66,7 @@ This is an adaptation of the algorithms and visual mapping, not a port of the en
 - Radix uses ten stable buckets and round-robin writes across bucket regions.
 - Iterative quicksort partition stacks avoid JavaScript recursion limits.
 - Each worker batch has a time cap. UI speed is a requested maximum number of checkpoints per frame, not a guaranteed frame rate.
-- Sound and the upstream application's other visualization modes are not included.
+- The upstream application's other visualization modes are not included.
 
 ## Credits and license
 

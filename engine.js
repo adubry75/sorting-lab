@@ -6,11 +6,11 @@ function SortingEngine(host) {
     if(!ids.includes(id)) throw new Error('Unknown algorithm');
     const n=input.length, seen=new Uint8Array(n);
     for(const v of input) {if(!Number.isInteger(v)||v<0||v>=n||seen[v]) throw new Error('Expected a permutation of 0 through n-1');seen[v]=1;}
-    const s={a:Int32Array.from(input),aux:new Int32Array(0),auxLabel:'No auxiliary array',phase:'Ready',active:[],metrics:{comparisons:0,swaps:0,writes:0,auxWrites:0},iterator:null};
+    const s={a:Int32Array.from(input),aux:new Int32Array(0),auxLabel:'No auxiliary array',phase:'Ready',active:[],soundIndex:-1,metrics:{comparisons:0,swaps:0,writes:0,auxWrites:0},iterator:null};
     const a=s.a,m=s.metrics;
     function cmp(x,y){m.comparisons++;return x-y;}
-    function set(i,v){a[i]=v;m.writes++;s.active=[i];}
-    function swap(i,j){s.active=[i,j];if(i!==j){const t=a[i];a[i]=a[j];a[j]=t;m.swaps++;m.writes+=2;}}
+    function set(i,v){a[i]=v;m.writes++;s.active=[i];s.soundIndex=Math.max(s.soundIndex,i);}
+    function swap(i,j){s.active=[i,j];if(i!==j){const t=a[i];a[i]=a[j];a[j]=t;m.swaps++;m.writes+=2;s.soundIndex=Math.max(s.soundIndex,i,j);}}
     function mark(i,j=i){s.active=[i,j];}
     function* insertion(lo=0,hi=n-1,gap=1){
       for(let i=lo+gap;i<=hi;i++){const v=a[i];let j=i;
@@ -76,15 +76,16 @@ function SortingEngine(host) {
     s.phase='Sorting';s.iterator=algorithms[id]();return s;
   }
   if(host){let run=null,token=0,computeMs=0,done=false;
-    function snapshot(includeArray=true){
+    function snapshot(includeArray=true,silent=false){
       const bins=run.aux.length<=100?Array.from(run.aux):Array.from({length:100},(_,b)=>{const lo=Math.floor(b*run.aux.length/100),hi=Math.floor((b+1)*run.aux.length/100);let sum=0;for(let i=lo;i<hi;i++)sum+=run.aux[i];return sum/(hi-lo);});
-      const msg={type:'frame',token,done,phase:done?'Complete':run.phase,metrics:{...run.metrics,computeMs},active:run.active,aux:bins,auxLength:run.aux.length,auxLabel:run.auxLabel};
+      const msg={type:'frame',token,done,phase:done?'Complete':run.phase,metrics:{...run.metrics,computeMs},active:run.active,soundValue:!silent&&run.soundIndex>=0?run.a[run.soundIndex]:null,aux:bins,auxLength:run.aux.length,auxLabel:run.auxLabel};
       if(includeArray){msg.array=run.a.slice();host.postMessage(msg,[msg.array.buffer]);}else host.postMessage(msg);
     }
     host.onmessage=e=>{try{const q=e.data;if(q.type==='init'){token=q.token;run=create(q.algorithm,q.array);computeMs=0;done=false;snapshot();}
       else if(q.type==='tick'&&run&&q.token===token){const start=performance.now(),budget=Math.max(1,Math.min(q.budget||1,2000000)),limit=q.fast?30:12;let steps=0;
+        run.soundIndex=-1;
         while(!done&&steps<budget){done=run.iterator.next().done;steps++;if(steps%128===0&&performance.now()-start>=limit)break;}
-        computeMs+=performance.now()-start;snapshot(!q.fast||done);
+        computeMs+=performance.now()-start;snapshot(!q.fast||done,!!q.fast);
       }}catch(err){host.postMessage({type:'error',token,message:err.message});}};
   }
   return {ids,create};
