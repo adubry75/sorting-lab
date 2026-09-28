@@ -4,7 +4,7 @@ const {chromium}=require('playwright'),assert=require('node:assert/strict'),path
  const result=await page.evaluate(async()=>{
   async function render(rate,extreme=false){
    const sr=44100,off=new OfflineAudioContext(2,sr*2,sr);let clock=0;const context=new Proxy(off,{get(t,k){if(k==='state')return 'running';if(k==='currentTime')return clock;if(k==='resume'||k==='close')return ()=>Promise.resolve();const v=t[k];return typeof v==='function'?v.bind(t):v;}});
-   const sound=new SortingAudio({createContext:()=>context});await sound.unlock();if(extreme){sound.setVolume(1);sound.setBass(1);sound.setPhaser(1);}
+   const sound=new SortingAudio({createContext:()=>context});await sound.unlock();if(extreme){sound.setVolume(1);sound.setBass(1);sound.setPhaser(1);sound.setReverb(1);}
    for(let frame=0;frame<rate*1.5;frame++){clock=frame/rate;sound.play(extreme?(frame%41)*100:0,4100);}
    clock=1.5;sound.silence();const buffer=await off.startRendering(),x=buffer.getChannelData(0),y=buffer.getChannelData(1);
    let sum=0,peak=0,tail=0,dc=0;for(let j=0;j<x.length;j++){peak=Math.max(peak,Math.abs(x[j]),Math.abs(y[j]));if(j>=sr*.5&&j<sr*1.4){sum+=(x[j]**2+y[j]**2)/2;dc+=x[j];}if(j>sr*1.6)tail=Math.max(tail,Math.abs(x[j]),Math.abs(y[j]));}

@@ -35,11 +35,12 @@ let lastMetrics={comparisons:0,writes:0,auxWrites:0,swaps:0,computeMs:0};
 const workerUrl=URL.createObjectURL(new Blob(['('+SortingEngine.toString()+')(self);'],{type:'application/javascript'}));
 let soundStep=false;
 const sound=new SortingAudio({onError:()=>{sound.setEnabled(false);soundControls();$('sound-note').textContent='Sound could not start. Click Sound on to try again.';}});
-function soundControls(){$('sound').textContent=sound.enabled?'Sound on':'Sound off';$('sound').setAttribute('aria-pressed',String(sound.enabled));$('volume-label').textContent=Math.round(sound.volume*100)+'%';$('bass-label').textContent=Math.round(sound.bass*100)+'%';$('phaser-label').textContent=Math.round(sound.phaser*100)+'%';}
+function soundControls(){$('sound').textContent=sound.enabled?'Sound on':'Sound off';$('sound').setAttribute('aria-pressed',String(sound.enabled));$('volume-label').textContent=Math.round(sound.volume*100)+'%';$('bass-label').textContent=Math.round(sound.bass*100)+'%';$('phaser-label').textContent=Math.round(sound.phaser*100)+'%';$('reverb-label').textContent=Math.round(sound.reverb*100)+'%';}
 $('sound').addEventListener('click',()=>{sound.setEnabled(!sound.enabled);if(sound.enabled){sound.unlock();$('sound-note').textContent='Pitch follows the highlighted values.';}soundControls();});
 $('volume').addEventListener('input',()=>{sound.setVolume(Number($('volume').value)/100);soundControls();});
 $('bass').addEventListener('input',()=>{sound.setBass(Number($('bass').value)/100);soundControls();});
 $('phaser').addEventListener('input',()=>{sound.setPhaser(Number($('phaser').value)/100);soundControls();});
+$('reverb').addEventListener('input',()=>{sound.setReverb(Number($('reverb').value)/100);soundControls();});
 $('tone').addEventListener('change',()=>{sound.setTone($('tone').value);$('sound-note').textContent=sound.tone==='reference'?'Video-derived tone · follows the highlighted values.':'Soft synth · follows the highlighted values.';});
 soundControls();
 function seeded(n,pattern,seed){const a=Int32Array.from({length:n},(_,i)=>i);let s=seed>>>0;const rand=()=>{s=(Math.imul(s,1664525)+1013904223)>>>0;return s/4294967296;};const swap=(i,j)=>{const t=a[i];a[i]=a[j];a[j]=t;};
@@ -72,7 +73,7 @@ function reset(autoStart=false,benchmark=false){
  $('aux-title').textContent='Auxiliary workspace';$('aux-count').textContent='No active buffer';$('aux-note').textContent='Temporary buffers and bucket counts appear here as the algorithm works.';drawAux();controls();
  try{worker=new Worker(workerUrl);worker.onerror=e=>{sound.silence();running=false;ready=false;pending=false;state('Error');phase(e.message||'Worker could not start. Try another browser.');controls();};
  worker.onmessage=e=>{const q=e.data;if(q.token!==token)return;pending=false;if(q.type==='error'){sound.silence();running=false;ready=false;state('Error');phase(q.message);controls();return;}
- if(q.done)sound.silence();else if(!fast&&!document.hidden&&(running||soundStep)&&q.soundValue!==null)sound.play(q.soundValue,array.length,{step:soundStep});soundStep=false;
+ if(q.done){if(!fast&&running&&!document.hidden)sound.finish();else sound.silence();}else if(!fast&&!document.hidden&&(running||soundStep)&&q.soundValue!==null)sound.play(q.soundValue,array.length,{step:soundStep});soundStep=false;
  const wasReady=ready;ready=true;lastMetrics=q.metrics;metrics();if(q.array){array=q.array;dirty=true;}lastAux=q.aux;drawAux();$('aux-title').textContent=q.auxLength?q.auxLabel:'Auxiliary workspace';$('aux-count').textContent=q.auxLength?fmt.format(q.auxLength)+' entries':'No active buffer';$('aux-note').textContent=q.auxLength>100?'Each bar shows the mean of a consecutive group of entries; scale follows the current maximum.':q.auxLength?'Each bar is one auxiliary entry; scale follows the current maximum.':'No auxiliary data is active yet. Small bookkeeping variables are not shown.';
  if(q.done){running=false;done=true;state('Complete');phase(fast?'Finished without animation':'All values in order');fast=false;dirty=true;}else if(started){phase(q.phase);state(running?(fast?'Timing':'Sorting'):'Paused');}
  if(!wasReady&&autoStart){running=true;started=true;state(fast?'Timing':'Sorting');}controls();};
