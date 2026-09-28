@@ -33,7 +33,7 @@ const workerUrl=URL.createObjectURL(new Blob(['('+SortingEngine.toString()+')(se
 let soundStep=false;
 const sound=new SortingAudio({onError:()=>{sound.setEnabled(false);soundControls();$('sound-note').textContent='Sound could not start. Click Sound on to try again.';}});
 function soundControls(){$('sound').textContent=sound.enabled?'Sound on':'Sound off';$('sound').setAttribute('aria-pressed',String(sound.enabled));$('volume-label').textContent=Math.round(sound.volume*100)+'%';}
-$('sound').addEventListener('click',()=>{sound.setEnabled(!sound.enabled);if(sound.enabled){sound.unlock();$('sound-note').textContent='Electric piano · pitch follows the value being written.';}soundControls();});
+$('sound').addEventListener('click',()=>{sound.setEnabled(!sound.enabled);if(sound.enabled){sound.unlock();$('sound-note').textContent='Soft tones · pitch follows the value being written.';}soundControls();});
 $('volume').addEventListener('input',()=>{sound.setVolume(Number($('volume').value)/100);soundControls();});
 soundControls();
 function seeded(n,pattern,seed){const a=Int32Array.from({length:n},(_,i)=>i);let s=seed>>>0;const rand=()=>{s=(Math.imul(s,1664525)+1013904223)>>>0;return s/4294967296;};const swap=(i,j)=>{const t=a[i];a[i]=a[j];a[j]=t;};

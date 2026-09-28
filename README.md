@@ -16,9 +16,9 @@ The inputs are permutations of the unique integer ranks 0 through n−1, with si
 
 Sound starts after you click **Start sorting** or **Step**. Use **Sound on/off** and the volume slider to control it. Pause, reset, completion, and hiding the tab silence the instrument. **Run without animation** is silent.
 
-The note mapping comes from [the original 2022 MidiSys.java](https://github.com/66-m/sorting-visualizer/blob/d70a61e48f649a9f66c681816f02a90145596c79/src/main/java/io/github/compilerstuck/Sound/MidiSys.java): MIDI note `28 + floor(40 * (value + 1) / length)`, velocity 90, Electric Piano 1, and one note at a time with the previous note cut on each retrigger. Pitch follows the written value, not swap distance or circle angle. Comparisons and auxiliary writes don't trigger notes. When a display batch contains several writes, the highest written index wins, following the original visualization's ascending-index draw order. Animation batching differs from the Java application, so the note sequence and timing can differ from the recording.
+The note mapping comes from [the original 2022 MidiSys.java](https://github.com/66-m/sorting-visualizer/blob/d70a61e48f649a9f66c681816f02a90145596c79/src/main/java/io/github/compilerstuck/Sound/MidiSys.java): MIDI note `28 + floor(40 * (value + 1) / length)`. Pitch follows the written value, not swap distance or circle angle. Comparisons and auxiliary writes don't trigger notes. When a display batch contains several writes, the highest written index wins, following the original visualization's ascending-index draw order. Animation batching differs from the Java application, so the note sequence and timing can differ from the recording.
 
-The voice is an independent, browser-native Web Audio synthesis of the electric-piano character, informed by the harmonic spectrum and filter envelope of [OpenJDK's fallback Electric Piano 1](https://github.com/openjdk/jdk/blob/master/src/java.desktop/share/classes/com/sun/media/sound/EmergencySoundbank.java). It is not a byte-identical rendering of the video's MIDI soundbank, which isn't bundled with the original project. Browser adaptation adds a sub-millisecond cutoff taper to reduce clicks, limits a held note to eight seconds, and gives individual steps a short audition. No Java, downloaded samples, MIDI hardware, or external audio dependencies are used; sound works in the standalone HTML too.
+The voice deliberately favors relaxed listening over reproducing the original buzzy MIDI instrument. A sine-led waveform has only two faint overtones; continuous oscillator phase, a short pitch glide, and gentle volume envelopes avoid sharp per-frame restarts. Target pitches and write triggers remain unchanged. Idle notes fade within roughly half a second, individual steps make a short soft tone, and pause/mute/reset use an eight-millisecond fade. This is our own calm voice, not a claim to reproduce a newer video or its soundbank. No Java, downloaded samples, MIDI hardware, or external audio dependencies are used; sound works in the standalone HTML too.
 
 **Run without animation** restores the same input and seed, then processes large batches with the main circle held still until completion. The compute counter measures time spent advancing the instrumented JavaScript algorithm. It excludes pauses, rendering, worker messaging, and waiting between frames. It includes generator and counter overhead and is not a calibrated benchmark or a comparison with Java/.NET.
 
@@ -37,7 +37,7 @@ The auxiliary workspace shows buffers or counts. Larger arrays are reduced to 10
 Source files are deliberately framework-free:
 
 - `engine.js`: the 20 generator-based algorithms and worker protocol.
-- `audio.js`: MIDI pitch mapping and the Web Audio electric-piano voice.
+- `audio.js`: MIDI pitch mapping and the soft Web Audio voice.
 - `app.js`: input generation, playback, circle rasterization, controls, and optional WebMCP tools.
 - `page.html` and `style.css`: interface and appearance.
 - `build.cjs`: combines the sources and license into a self-contained HTML file.

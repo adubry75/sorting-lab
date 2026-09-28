@@ -1,19 +1,18 @@
 /* Sorting Lab audio, AGPL-3.0. MIDI mapping adapted from CompilerStuck's
-   MidiSys.java. The electric-piano voice is synthesized with Web Audio;
+   MidiSys.java. The soft, sine-led voice is synthesized with Web Audio;
    no Java, MIDI device, soundfont download, or third-party runtime is required. */
 function SortingAudio({createContext,onError=()=>{}}={}) {
   let context=null,master=null,wave=null,voice=null,enabled=true,volume=.35;
   function silence(){
     if(!voice||!context)return;
     const old=voice;voice=null;
-    // A sub-millisecond taper avoids Web Audio discontinuity clicks while retaining
-    // the original monophonic hard-retrigger character (no piano release tails).
+    // Fade rather than interrupting a waveform mid-cycle.
     const now=context.currentTime;
     // A separate gate leaves the note's envelope automation intact. It also
     // avoids cancelAndHoldAtTime, which is unavailable in some browsers.
     old.gate.gain.setValueAtTime(1,now);
-    old.gate.gain.linearRampToValueAtTime(0,now+.0008);
-    old.osc.stop(now+.001);
+    old.gate.gain.linearRampToValueAtTime(0,now+.008);
+    old.osc.stop(now+.012);
   }
   function unlock(){
     if(!enabled)return Promise.resolve();
@@ -21,16 +20,9 @@ function SortingAudio({createContext,onError=()=>{}}={}) {
       if(!context){
         const make=createContext||(()=>new (globalThis.AudioContext||globalThis.webkitAudioContext)());
         context=make();master=context.createGain();master.gain.value=volume;master.connect(context.destination);
-        // Independently synthesized Rhodes-like spectrum. The 40 exponentially
-        // diminishing harmonics and closing filter follow the character of the
-        // JDK fallback Electric Piano 1, rather than a generic sine beep.
-        const real=new Float32Array(41),imag=new Float32Array(41);
-        let seed=302030201;
-        for(let h=1;h<=40;h++){
-          seed=(Math.imul(seed,1664525)+1013904223)>>>0;
-          const phase=seed/4294967296*Math.PI*2,amplitude=Math.pow(.00005,(h-1)/40);
-          real[h]=Math.cos(phase)*amplitude;imag[h]=Math.sin(phase)*amplitude;
-        }
+        // Mostly a sine, with a faint octave and third harmonic for warmth.
+        // No dense upper spectrum, random phase, or sharp per-frame restarts.
+        const real=new Float32Array(4),imag=new Float32Array([0,1,.09,.018]);
         wave=context.createPeriodicWave(real,imag);
       }
       return context.resume().catch(onError);
@@ -38,22 +30,26 @@ function SortingAudio({createContext,onError=()=>{}}={}) {
   }
   function play(value,length,{step=false}={}){
     if(!enabled||volume===0||!context||context.state!=='running'||!Number.isInteger(value)||value<0||value>=length)return;
-    silence();
-    const now=context.currentTime,note=SortingAudio.noteFor(value,length),osc=context.createOscillator(),filter=context.createBiquadFilter(),gain=context.createGain(),gate=context.createGain();
-    osc.setPeriodicWave(wave);osc.frequency.value=440*Math.pow(2,(note-69)/12);
-    filter.type='lowpass';filter.Q.value=0;
-    // SoundFont-style filter envelope: 16000 cents closes by 9000 cents in 4 s.
-    const cutoff=cents=>Math.min(context.sampleRate*.45,8.176*Math.pow(2,cents/1200));
-    filter.frequency.setValueAtTime(cutoff(16000),now);
-    filter.frequency.exponentialRampToValueAtTime(cutoff(7000),now+4);
-    const level=.22*Math.pow(90/127,2),hold=step?.18:8;
-    gain.gain.setValueAtTime(0,now);gain.gain.linearRampToValueAtTime(level,now+.001);
-    gain.gain.exponentialRampToValueAtTime(level*Math.pow(.00001,hold/101.594),now+hold);
-    gain.gain.linearRampToValueAtTime(0,now+hold+.003);
-    osc.connect(filter);filter.connect(gain);gain.connect(gate);gate.connect(master);
-    const current={osc,filter,gain,gate};voice=current;
-    osc.onended=()=>{osc.disconnect();filter.disconnect();gain.disconnect();gate.disconnect();if(voice===current)voice=null;};
-    osc.start(now);osc.stop(now+hold+.004);
+    const now=context.currentTime,note=SortingAudio.noteFor(value,length),frequency=440*Math.pow(2,(note-69)/12);
+    if(voice&&now>=voice.endsAt){silence();}
+    if(!voice){
+      const osc=context.createOscillator(),gain=context.createGain(),gate=context.createGain();
+      osc.setPeriodicWave(wave);osc.frequency.value=frequency;gain.gain.value=0;
+      osc.connect(gain);gain.connect(gate);gate.connect(master);
+      const current={osc,gain,gate,note,endsAt:now};voice=current;
+      osc.onended=()=>{osc.disconnect();gain.disconnect();gate.disconnect();if(voice===current)voice=null;};
+      osc.start(now);
+    }else if(voice.note!==note){
+      // Keep oscillator phase continuous while approaching the same mapped pitch.
+      voice.osc.frequency.setTargetAtTime(frequency,now,.018);voice.note=note;
+    }
+    const level=.12,hold=step?.045:.08,release=step?.025:.05;
+    voice.gain.gain.cancelScheduledValues(now);
+    voice.gain.gain.setTargetAtTime(level,now,.014);
+    voice.gain.gain.setTargetAtTime(0,now+hold,release);
+    voice.endsAt=now+(step?.23:.55);
+    // Replacing the scheduled stop extends this one voice while writes continue.
+    voice.osc.stop(voice.endsAt);
   }
   function setEnabled(value){enabled=!!value;if(!enabled)silence();}
   function setVolume(value){volume=Math.max(0,Math.min(1,Number(value)||0));if(master)master.gain.setTargetAtTime(volume,context.currentTime,.01);if(!volume)silence();}

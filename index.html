@@ -22,7 +22,7 @@
     <div class="seed-row"><label class="field" for="seed">Shuffle seed<input id="seed" type="number" min="0" max="4294967295" step="1" value="42"></label><button id="shuffle" class="secondary" title="Create a new shuffle seed">Reshuffle</button></div>
     <label class="speed-label" for="speed"><span>Playback speed</span><output id="speed-label">20,000 steps / frame</output></label><input id="speed" type="range" min="0" max="7" value="5"><div class="range-labels"><span>One step at a time</span><span>Fast</span></div>
     <div class="transport"><button class="primary" id="play">▶ Start sorting</button><button class="secondary" id="step" title="Advance one comparison, write, or algorithm checkpoint">Step</button><button class="secondary" id="reset" title="Restore the same input and seed">Reset</button></div>
-    <div class="sound-controls"><div class="sound-row"><button id="sound" class="secondary" aria-pressed="true">Sound on</button><label for="volume">Volume <output id="volume-label">35%</output></label></div><input id="volume" type="range" min="0" max="100" value="35" aria-label="Sound volume"><p id="sound-note" class="note">Electric piano · pitch follows the value being written.</p></div>
+    <div class="sound-controls"><div class="sound-row"><button id="sound" class="secondary" aria-pressed="true">Sound on</button><label for="volume">Volume <output id="volume-label">35%</output></label></div><input id="volume" type="range" min="0" max="100" value="35" aria-label="Sound volume"><p id="sound-note" class="note">Soft tones · pitch follows the value being written.</p></div>
     <button id="benchmark" class="benchmark">Run without animation <span aria-hidden="true">↗</span></button><p id="run-note" class="note">Timing measures this browser implementation, not the video's Java code.</p>
   </aside>
   <section class="aux-panel" aria-label="Auxiliary data"><div class="aux-header"><div><span class="eyebrow">BEHIND THE SCENES</span><h2 id="aux-title">Auxiliary workspace</h2></div><span id="aux-count">No active buffer</span></div><canvas id="auxplot" role="img" aria-label="Auxiliary workspace values, grouped into up to 100 bars"></canvas><p id="aux-note">Temporary buffers and bucket counts appear here as the algorithm works.</p></section>
@@ -783,21 +783,20 @@ function SortingEngine(host) {
 }
 if(typeof module!=='undefined')module.exports=SortingEngine;
 </script><script>/* Sorting Lab audio, AGPL-3.0. MIDI mapping adapted from CompilerStuck's
-   MidiSys.java. The electric-piano voice is synthesized with Web Audio;
+   MidiSys.java. The soft, sine-led voice is synthesized with Web Audio;
    no Java, MIDI device, soundfont download, or third-party runtime is required. */
 function SortingAudio({createContext,onError=()=>{}}={}) {
   let context=null,master=null,wave=null,voice=null,enabled=true,volume=.35;
   function silence(){
     if(!voice||!context)return;
     const old=voice;voice=null;
-    // A sub-millisecond taper avoids Web Audio discontinuity clicks while retaining
-    // the original monophonic hard-retrigger character (no piano release tails).
+    // Fade rather than interrupting a waveform mid-cycle.
     const now=context.currentTime;
     // A separate gate leaves the note's envelope automation intact. It also
     // avoids cancelAndHoldAtTime, which is unavailable in some browsers.
     old.gate.gain.setValueAtTime(1,now);
-    old.gate.gain.linearRampToValueAtTime(0,now+.0008);
-    old.osc.stop(now+.001);
+    old.gate.gain.linearRampToValueAtTime(0,now+.008);
+    old.osc.stop(now+.012);
   }
   function unlock(){
     if(!enabled)return Promise.resolve();
@@ -805,16 +804,9 @@ function SortingAudio({createContext,onError=()=>{}}={}) {
       if(!context){
         const make=createContext||(()=>new (globalThis.AudioContext||globalThis.webkitAudioContext)());
         context=make();master=context.createGain();master.gain.value=volume;master.connect(context.destination);
-        // Independently synthesized Rhodes-like spectrum. The 40 exponentially
-        // diminishing harmonics and closing filter follow the character of the
-        // JDK fallback Electric Piano 1, rather than a generic sine beep.
-        const real=new Float32Array(41),imag=new Float32Array(41);
-        let seed=302030201;
-        for(let h=1;h<=40;h++){
-          seed=(Math.imul(seed,1664525)+1013904223)>>>0;
-          const phase=seed/4294967296*Math.PI*2,amplitude=Math.pow(.00005,(h-1)/40);
-          real[h]=Math.cos(phase)*amplitude;imag[h]=Math.sin(phase)*amplitude;
-        }
+        // Mostly a sine, with a faint octave and third harmonic for warmth.
+        // No dense upper spectrum, random phase, or sharp per-frame restarts.
+        const real=new Float32Array(4),imag=new Float32Array([0,1,.09,.018]);
         wave=context.createPeriodicWave(real,imag);
       }
       return context.resume().catch(onError);
@@ -822,22 +814,26 @@ function SortingAudio({createContext,onError=()=>{}}={}) {
   }
   function play(value,length,{step=false}={}){
     if(!enabled||volume===0||!context||context.state!=='running'||!Number.isInteger(value)||value<0||value>=length)return;
-    silence();
-    const now=context.currentTime,note=SortingAudio.noteFor(value,length),osc=context.createOscillator(),filter=context.createBiquadFilter(),gain=context.createGain(),gate=context.createGain();
-    osc.setPeriodicWave(wave);osc.frequency.value=440*Math.pow(2,(note-69)/12);
-    filter.type='lowpass';filter.Q.value=0;
-    // SoundFont-style filter envelope: 16000 cents closes by 9000 cents in 4 s.
-    const cutoff=cents=>Math.min(context.sampleRate*.45,8.176*Math.pow(2,cents/1200));
-    filter.frequency.setValueAtTime(cutoff(16000),now);
-    filter.frequency.exponentialRampToValueAtTime(cutoff(7000),now+4);
-    const level=.22*Math.pow(90/127,2),hold=step?.18:8;
-    gain.gain.setValueAtTime(0,now);gain.gain.linearRampToValueAtTime(level,now+.001);
-    gain.gain.exponentialRampToValueAtTime(level*Math.pow(.00001,hold/101.594),now+hold);
-    gain.gain.linearRampToValueAtTime(0,now+hold+.003);
-    osc.connect(filter);filter.connect(gain);gain.connect(gate);gate.connect(master);
-    const current={osc,filter,gain,gate};voice=current;
-    osc.onended=()=>{osc.disconnect();filter.disconnect();gain.disconnect();gate.disconnect();if(voice===current)voice=null;};
-    osc.start(now);osc.stop(now+hold+.004);
+    const now=context.currentTime,note=SortingAudio.noteFor(value,length),frequency=440*Math.pow(2,(note-69)/12);
+    if(voice&&now>=voice.endsAt){silence();}
+    if(!voice){
+      const osc=context.createOscillator(),gain=context.createGain(),gate=context.createGain();
+      osc.setPeriodicWave(wave);osc.frequency.value=frequency;gain.gain.value=0;
+      osc.connect(gain);gain.connect(gate);gate.connect(master);
+      const current={osc,gain,gate,note,endsAt:now};voice=current;
+      osc.onended=()=>{osc.disconnect();gain.disconnect();gate.disconnect();if(voice===current)voice=null;};
+      osc.start(now);
+    }else if(voice.note!==note){
+      // Keep oscillator phase continuous while approaching the same mapped pitch.
+      voice.osc.frequency.setTargetAtTime(frequency,now,.018);voice.note=note;
+    }
+    const level=.12,hold=step?.045:.08,release=step?.025:.05;
+    voice.gain.gain.cancelScheduledValues(now);
+    voice.gain.gain.setTargetAtTime(level,now,.014);
+    voice.gain.gain.setTargetAtTime(0,now+hold,release);
+    voice.endsAt=now+(step?.23:.55);
+    // Replacing the scheduled stop extends this one voice while writes continue.
+    voice.osc.stop(voice.endsAt);
   }
   function setEnabled(value){enabled=!!value;if(!enabled)silence();}
   function setVolume(value){volume=Math.max(0,Math.min(1,Number(value)||0));if(master)master.gain.setTargetAtTime(volume,context.currentTime,.01);if(!volume)silence();}
@@ -881,7 +877,7 @@ const workerUrl=URL.createObjectURL(new Blob(['('+SortingEngine.toString()+')(se
 let soundStep=false;
 const sound=new SortingAudio({onError:()=>{sound.setEnabled(false);soundControls();$('sound-note').textContent='Sound could not start. Click Sound on to try again.';}});
 function soundControls(){$('sound').textContent=sound.enabled?'Sound on':'Sound off';$('sound').setAttribute('aria-pressed',String(sound.enabled));$('volume-label').textContent=Math.round(sound.volume*100)+'%';}
-$('sound').addEventListener('click',()=>{sound.setEnabled(!sound.enabled);if(sound.enabled){sound.unlock();$('sound-note').textContent='Electric piano · pitch follows the value being written.';}soundControls();});
+$('sound').addEventListener('click',()=>{sound.setEnabled(!sound.enabled);if(sound.enabled){sound.unlock();$('sound-note').textContent='Soft tones · pitch follows the value being written.';}soundControls();});
 $('volume').addEventListener('input',()=>{sound.setVolume(Number($('volume').value)/100);soundControls();});
 soundControls();
 function seeded(n,pattern,seed){const a=Int32Array.from({length:n},(_,i)=>i);let s=seed>>>0;const rand=()=>{s=(Math.imul(s,1664525)+1013904223)>>>0;return s/4294967296;};const swap=(i,j)=>{const t=a[i];a[i]=a[j];a[j]=t;};
