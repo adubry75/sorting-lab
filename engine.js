@@ -9,9 +9,9 @@ function SortingEngine(host) {
     const s={a:Int32Array.from(input),aux:new Int32Array(0),auxLabel:'No auxiliary array',phase:'Ready',active:[],soundIndex:-1,metrics:{comparisons:0,swaps:0,writes:0,auxWrites:0},iterator:null};
     const a=s.a,m=s.metrics;
     function cmp(x,y){m.comparisons++;return x-y;}
-    function set(i,v){a[i]=v;m.writes++;s.active=[i];s.soundIndex=Math.max(s.soundIndex,i);}
-    function swap(i,j){s.active=[i,j];if(i!==j){const t=a[i];a[i]=a[j];a[j]=t;m.swaps++;m.writes+=2;s.soundIndex=Math.max(s.soundIndex,i,j);}}
-    function mark(i,j=i){s.active=[i,j];}
+    function set(i,v){a[i]=v;m.writes++;s.active=[i];s.soundIndex=i;}
+    function swap(i,j){s.active=[i,j];if(i!==j){const t=a[i];a[i]=a[j];a[j]=t;m.swaps++;m.writes+=2;s.soundIndex=Math.max(i,j);}}
+    function mark(i,j=i){s.active=[i,j];s.soundIndex=Math.max(i,j);if(s.soundIndex<0||s.soundIndex>=n)s.soundIndex=-1;}
     function* insertion(lo=0,hi=n-1,gap=1){
       for(let i=lo+gap;i<=hi;i++){const v=a[i];let j=i;
         while(j-gap>=lo){mark(j,j-gap);const c=cmp(a[j-gap],v);yield;if(c<=0)break;set(j,a[j-gap]);yield;j-=gap;}
@@ -22,7 +22,7 @@ function SortingEngine(host) {
       s.phase='Copying a run';const b=new Int32Array(hi-lo+1);s.aux=b;s.auxLabel='Merge buffer';
       for(let k=lo;k<=hi;k++){b[k-lo]=a[k];m.auxWrites++;mark(k);yield;}
       s.phase='Merging runs';let i=0,j=mid-lo+1;const endLeft=j;
-      for(let k=lo;k<=hi;k++){let v;if(i>=endLeft)v=b[j++];else if(j>=b.length)v=b[i++];else{v=cmp(b[i],b[j])<=0?b[i++]:b[j++];}set(k,v);yield;}
+      for(let k=lo;k<=hi;k++){const merging=i<endLeft&&j<b.length;let v;if(i>=endLeft)v=b[j++];else if(j>=b.length)v=b[i++];else{v=cmp(b[i],b[j])<=0?b[i++]:b[j++];}set(k,v);if(merging)mark(k+1);yield;}
     }
     function* merge(lo=0,hi=n-1){if(lo>=hi)return;const mid=(lo+hi)>>1;yield*merge(lo,mid);yield*merge(mid+1,hi);yield*mergeParts(lo,mid,hi);}
     function* quick(){const stack=[[0,n-1]];while(stack.length){const [lo,hi]=stack.pop();if(lo>=hi)continue;let i=lo,j=hi;const p=a[(lo+hi)>>1];s.phase='Partitioning around a pivot';
@@ -61,13 +61,13 @@ function SortingEngine(host) {
     function* bubble(){for(let end=n-1;end>0;end--){let changed=false;s.phase='Bubbling maximum to position '+end;for(let i=0;i<end;i++){mark(i,i+1);if(cmp(a[i],a[i+1])>0){swap(i,i+1);changed=true;}yield;}if(!changed)break;}}
     function* odd(){let changed=true;while(changed){changed=false;for(const parity of [1,0]){s.phase=parity?'Odd pairs':'Even pairs';for(let i=parity;i+1<n;i+=2){mark(i,i+1);if(cmp(a[i],a[i+1])>0){swap(i,i+1);changed=true;}yield;}}}}
     function* double(){for(let lo=0,hi=n-1;lo<hi;lo++,hi--){s.phase='Finding minimum and maximum';let min=lo,max=lo;for(let j=lo+1;j<=hi;j++){mark(j);if(cmp(a[j],a[min])<0)min=j;if(cmp(a[j],a[max])>0)max=j;yield;}swap(lo,min);yield;if(max===lo)max=min;swap(hi,max);yield;}}
-    function* counting(){s.aux=new Int32Array(n);s.auxLabel='Occurrences per value';s.phase='Counting into auxiliary array';for(let i=0;i<n;i++){s.aux[a[i]]++;m.auxWrites++;mark(i);yield;}s.phase='Writing sorted values';let p=0;for(let v=0;v<n;v++){while(s.aux[v]>0){set(p++,v);s.aux[v]--;m.auxWrites++;yield;}}}
+    function* counting(){s.aux=new Int32Array(n);s.auxLabel='Occurrences per value';s.phase='Counting into auxiliary array';for(let i=0;i<n;i++){s.aux[a[i]]++;m.auxWrites++;mark(a[i]);yield;}s.phase='Writing sorted values';let p=0;for(let v=0;v<n;v++){while(s.aux[v]>0){set(p++,v);s.aux[v]--;m.auxWrites++;yield;}}}
     function* selection(){for(let i=0;i<n-1;i++){s.phase='Finding next minimum';let min=i;for(let j=i+1;j<n;j++){mark(j,min);if(cmp(a[j],a[min])<0)min=j;yield;}swap(i,min);yield;}}
     function* cycle(){for(let start=0;start<n-1;start++){let item=a[start],pos=start;s.phase='Finding final position';for(let j=start+1;j<n;j++){mark(j);if(cmp(a[j],item)<0)pos++;yield;}if(pos===start)continue;
       let tmp=a[pos];set(pos,item);item=tmp;yield;
       while(pos!==start){pos=start;for(let j=start+1;j<n;j++){mark(j);if(cmp(a[j],item)<0)pos++;yield;}tmp=a[pos];set(pos,item);item=tmp;yield;}
     }}
-    function* flag(){s.aux=new Int32Array(n);s.auxLabel='Remaining values per bucket';s.phase='Counting destination buckets';for(let i=0;i<n;i++){s.aux[a[i]]++;m.auxWrites++;mark(i);yield;}
+    function* flag(){s.aux=new Int32Array(n);s.auxLabel='Remaining values per bucket';s.phase='Counting destination buckets';for(let i=0;i<n;i++){s.aux[a[i]]++;m.auxWrites++;mark(a[i]);yield;}
       const start=new Int32Array(n);s.phase='Calculating bucket positions';for(let i=1;i<n;i++){start[i]=start[i-1]+s.aux[i-1];m.auxWrites++;yield;}
       s.phase='Following destination cycles';for(let b=0;b<n;b++){while(s.aux[b]>0){const origin=start[b];let from=origin,num=a[from];do{const to=start[num]++;s.aux[num]--;m.auxWrites+=2;const temp=a[to];set(to,num);num=temp;from=to;yield;}while(from!==origin);}}
     }
@@ -84,7 +84,7 @@ function SortingEngine(host) {
     host.onmessage=e=>{try{const q=e.data;if(q.type==='init'){token=q.token;run=create(q.algorithm,q.array);computeMs=0;done=false;snapshot();}
       else if(q.type==='tick'&&run&&q.token===token){const start=performance.now(),budget=Math.max(1,Math.min(q.budget||1,2000000)),limit=q.fast?30:12;let steps=0;
         run.soundIndex=-1;
-        while(!done&&steps<budget){done=run.iterator.next().done;steps++;if(steps%128===0&&performance.now()-start>=limit)break;}
+        while(!done&&steps<budget){run.soundIndex=-1;done=run.iterator.next().done;steps++;if(steps%128===0&&performance.now()-start>=limit)break;}
         computeMs+=performance.now()-start;snapshot(!q.fast||done,!!q.fast);
       }}catch(err){host.postMessage({type:'error',token,message:err.message});}};
   }

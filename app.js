@@ -36,10 +36,11 @@ const workerUrl=URL.createObjectURL(new Blob(['('+SortingEngine.toString()+')(se
 let soundStep=false;
 const sound=new SortingAudio({onError:()=>{sound.setEnabled(false);soundControls();$('sound-note').textContent='Sound could not start. Click Sound on to try again.';}});
 function soundControls(){$('sound').textContent=sound.enabled?'Sound on':'Sound off';$('sound').setAttribute('aria-pressed',String(sound.enabled));$('volume-label').textContent=Math.round(sound.volume*100)+'%';$('bass-label').textContent=Math.round(sound.bass*100)+'%';$('phaser-label').textContent=Math.round(sound.phaser*100)+'%';}
-$('sound').addEventListener('click',()=>{sound.setEnabled(!sound.enabled);if(sound.enabled){sound.unlock();$('sound-note').textContent='Warm bass, slow swirl · pitch still follows each value.';}soundControls();});
+$('sound').addEventListener('click',()=>{sound.setEnabled(!sound.enabled);if(sound.enabled){sound.unlock();$('sound-note').textContent='Pitch follows the highlighted values.';}soundControls();});
 $('volume').addEventListener('input',()=>{sound.setVolume(Number($('volume').value)/100);soundControls();});
 $('bass').addEventListener('input',()=>{sound.setBass(Number($('bass').value)/100);soundControls();});
 $('phaser').addEventListener('input',()=>{sound.setPhaser(Number($('phaser').value)/100);soundControls();});
+$('tone').addEventListener('change',()=>{sound.setTone($('tone').value);$('sound-note').textContent=sound.tone==='reference'?'Video-derived tone · follows the highlighted values.':'Soft synth · follows the highlighted values.';});
 soundControls();
 function seeded(n,pattern,seed){const a=Int32Array.from({length:n},(_,i)=>i);let s=seed>>>0;const rand=()=>{s=(Math.imul(s,1664525)+1013904223)>>>0;return s/4294967296;};const swap=(i,j)=>{const t=a[i];a[i]=a[j];a[j]=t;};
  if(pattern==='reverse')a.reverse();else if(pattern==='random')for(let i=n-1;i>0;i--)swap(i,Math.floor(rand()*(i+1)));else if(pattern==='almost')for(let k=0;k<Math.max(1,Math.floor(n*.01));k++){const i=Math.floor(rand()*n);swap(i,Math.min(n-1,i+1+Math.floor(rand()*8)));}return a;}
