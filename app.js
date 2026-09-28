@@ -26,7 +26,7 @@ const slow=new Set(['gnome','shaker','bubble','odd','double','insertion','select
 // Dense low/mid-range stops keep slower algorithms easy to watch; wider high
 // ranges still reach a million checkpoints without an impractically long slider.
 const speeds=[...Array.from({length:10},(_,i)=>i+1),...Array.from({length:9},(_,i)=>(i+2)*10),...[100,1000,10000,100000].flatMap(base=>Array.from({length:36},(_,i)=>base+(i+1)*base/4))];
-$('speed').max=String(speeds.length-1);$('speed').value=String(speeds.indexOf(20000));
+$('speed').max=String(speeds.length-1);$('speed').value=String(speeds.indexOf(500));
 $('algorithm').replaceChildren(...algorithms.map(([id,name])=>{const o=document.createElement('option');o.value=id;o.textContent=name;return o;}));
 const canvas=$('plot'),ctx=canvas.getContext('2d',{alpha:false}),auxcanvas=$('auxplot'),auxctx=auxcanvas.getContext('2d');
 let array=new Int32Array(0),initial=null,worker=null,token=0,ready=false,pending=false,running=false,done=false,started=false,fast=false;

@@ -2,7 +2,7 @@
    MidiSys.java. Reference wavetables were fitted to the user's recording;
    no Java, MIDI device, soundfont download, or third-party runtime is required. */
 function SortingAudio({createContext,onError=()=>{}}={}) {
-  let context=null,master=null,wave=null,referenceWaves=null,lfo=null,voice=null,enabled=true,volume=.35,bass=0,phaser=0,tone='reference';
+  let context=null,master=null,mix=null,wave=null,referenceWaves=null,lfo=null,voice=null,enabled=true,volume=.70,bass=0,phaser=0,tone='reference';
   function silence(){
     if(!voice||!context)return;
     const old=voice;voice=null;
@@ -22,6 +22,12 @@ function SortingAudio({createContext,onError=()=>{}}={}) {
       if(!context){
         const make=createContext||(()=>new (globalThis.AudioContext||globalThis.webkitAudioContext)());
         context=make();master=context.createGain();master.gain.value=volume;master.connect(context.destination);
+        // Keep the measured bass audible while removing DC and leaving headroom
+        // when the optional effects are turned up. The limiter is linear below .8.
+        mix=context.createBiquadFilter();mix.type='highpass';mix.frequency.value=20;mix.Q.value=Math.SQRT1_2;
+        const limiter=context.createWaveShaper(),curve=new Float32Array(8193);
+        for(let i=0;i<curve.length;i++){const x=i*2/(curve.length-1)-1,a=Math.abs(x);curve[i]=Math.sign(x)*(a<=.8?a:.8+.18*Math.tanh((a-.8)/.18));}
+        limiter.curve=curve;limiter.oversample='2x';mix.connect(limiter);limiter.connect(master);
         // Mostly a sine, with a faint octave and third harmonic for warmth.
         // No dense upper spectrum, random phase, or sharp per-frame restarts.
         const real=new Float32Array(4),imag=new Float32Array([0,1,.09,.018]);
@@ -37,17 +43,30 @@ function SortingAudio({createContext,onError=()=>{}}={}) {
     if(!enabled||volume===0||!context||context.state!=='running'||!Number.isInteger(value)||value<0||value>=length)return;
     const now=context.currentTime,note=SortingAudio.noteFor(value,length),frequency=440*Math.pow(2,(note-69)/12);
     const reference=tone==='reference',zone=note<=42?0:note<=56?1:2,divisor=reference?SortingAudio.referenceTone[zone].harmonic:1;
-    // The reference retriggers at each published highlight instead of gliding
-    // one continuous oscillator. Its measured waveform already contains bass.
+    // Carry the waveform's phase across highlights. Restarting it from zero on
+    // each screen frame replaces low notes with a refresh-rate buzz.
+    const previous=reference&&voice&&now<voice.endsAt?voice:null;
+    const phase=previous?(previous.phase+(now-previous.startedAt)*previous.baseFrequency)%1:0;
+    const subPhase=previous?(previous.subPhase+(now-previous.startedAt)*previous.pitchFrequency/2)%1:0;
     if(reference&&voice)silence();
     if(voice&&now>=voice.endsAt){silence();}
     if(!voice){
       const sub=context.createOscillator(),osc=context.createOscillator(),right=context.createOscillator(),stereo=context.createChannelMerger(2),gain=context.createGain(),gate=context.createGain();
-      osc.setPeriodicWave(reference?referenceWaves[zone][0]:wave);right.setPeriodicWave(reference?referenceWaves[zone][1]:wave);
+      let pair=referenceWaves[zone];
+      if(reference&&phase){
+        const model=SortingAudio.referenceTone[zone];
+        pair=model.real.map((re,c)=>{
+          const real=new Float32Array(re.length),imag=new Float32Array(re.length);
+          for(let h=0;h<re.length;h++){const angle=2*Math.PI*h*phase,cos=Math.cos(angle),sin=Math.sin(angle);real[h]=re[h]*cos+model.imag[c][h]*sin;imag[h]=model.imag[c][h]*cos-re[h]*sin;}
+          return context.createPeriodicWave(real,imag,{disableNormalization:true});
+        });
+      }
+      osc.setPeriodicWave(reference?pair[0]:wave);right.setPeriodicWave(reference?pair[1]:wave);
       osc.frequency.value=right.frequency.value=frequency/divisor;gain.gain.value=0;
       osc.connect(stereo,0,0);right.connect(stereo,0,1);
       const subLevel=context.createGain(),dry=context.createGain(),wet=context.createGain();
       sub.type='sine';sub.frequency.value=frequency/2;subLevel.gain.value=bass*.65;
+      if(reference&&subPhase)sub.setPeriodicWave(context.createPeriodicWave(new Float32Array([0,Math.sin(2*Math.PI*subPhase)]),new Float32Array([0,Math.cos(2*Math.PI*subPhase)]),{disableNormalization:true}));
       dry.gain.value=1-phaser*.5;wet.gain.value=phaser*.5;
       // Mix a swept four-stage all-pass chain with the dry voice. The sub-bass
       // bypasses it so the bass stays solid as the upper voice moves.
@@ -59,17 +78,20 @@ function SortingAudio({createContext,onError=()=>{}}={}) {
         filters.push(filter);depths.push(depth);
       }
       previous.connect(wet);wet.connect(gain);stereo.connect(dry);dry.connect(gain);
-      sub.connect(subLevel);subLevel.connect(gain);gain.connect(gate);gate.connect(master);
-      const current={osc,right,stereo,sub,subLevel,dry,wet,gain,gate,filters,depths,note,endsAt:now};voice=current;
+      sub.connect(subLevel);subLevel.connect(gain);gain.connect(gate);gate.connect(mix);
+      const current={osc,right,stereo,sub,subLevel,dry,wet,gain,gate,filters,depths,note,phase,subPhase,baseFrequency:frequency/divisor,pitchFrequency:frequency,startedAt:now,endsAt:now};voice=current;
       osc.onended=()=>{osc.disconnect();right.disconnect();stereo.disconnect();sub.disconnect();subLevel.disconnect();dry.disconnect();wet.disconnect();gain.disconnect();gate.disconnect();for(const filter of filters)filter.disconnect();for(const depth of depths){lfo.disconnect(depth);depth.disconnect();}if(voice===current)voice=null;};
       osc.start(now);right.start(now);sub.start(now);
     }else if(voice.note!==note){
       // Keep oscillator phase continuous while approaching the same mapped pitch.
       voice.osc.frequency.setTargetAtTime(frequency,now,.018);voice.right.frequency.setTargetAtTime(frequency,now,.018);voice.sub.frequency.setTargetAtTime(frequency/2,now,.018);voice.note=note;
     }
-    const level=reference?.18:.12,hold=step?.045:.08,release=step?.025:.05;
+    const level=reference?.55:.12,hold=step?.045:.08,release=step?.025:.05;
     voice.gain.gain.cancelScheduledValues(now);
-    voice.gain.gain.setTargetAtTime(level,now,reference?.0025:.014);
+    // Complement the old voice's eight-millisecond fade instead of overlapping
+    // two full-level attacks. Stable notes retain complete bass cycles.
+    if(reference){voice.gain.gain.setValueAtTime(0,now);voice.gain.gain.linearRampToValueAtTime(level,now+(previous?.008:.003));}
+    else voice.gain.gain.setTargetAtTime(level,now,.014);
     voice.gain.gain.setTargetAtTime(0,now+hold,release);
     voice.endsAt=now+(step?.23:.55);
     // Replacing the scheduled stop extends this one voice while writes continue.

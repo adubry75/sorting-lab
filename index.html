@@ -22,9 +22,9 @@
     <div class="algorithm-info"><div class="info-tags"><span id="family">Divide & conquer</span><span id="complexity">O(n log n)</span></div><p id="description">Split the array into smaller runs, then merge them back into order.</p><div class="watch"><span>WATCH FOR</span><p id="watch">Thin rainbow petals join into larger curves before settling on the rim.</p></div><a id="chapter" href="https://www.youtube.com/watch?v=M3OuTtW662Y" target="_blank" rel="noopener">See it in the original video ↗</a></div>
     <div class="input-row"><label class="field" for="size">Elements<select id="size"><option value="64">64</option><option value="256">256</option><option value="1024">1,024</option><option value="5000">5,000</option><option value="10000">10,000</option><option value="50000" selected>50,000</option></select></label><label class="field" for="pattern">Starting order<select id="pattern"><option value="random">Shuffled</option><option value="almost">Nearly sorted</option><option value="reverse">Reversed</option><option value="sorted">Sorted</option></select></label></div>
     <div class="seed-row"><label class="field" for="seed">Shuffle seed<input id="seed" type="number" min="0" max="4294967295" step="1" value="42"></label><button id="shuffle" class="secondary" title="Create a new shuffle seed">Reshuffle</button></div>
-    <label class="speed-label" for="speed"><span>Playback speed</span><output id="speed-label">20,000 steps / frame</output></label><input id="speed" type="range" min="0" max="162" value="94"><div class="range-labels"><span>One step at a time</span><span>Fast</span></div>
+    <label class="speed-label" for="speed"><span>Playback speed</span><output id="speed-label">500 steps / frame</output></label><input id="speed" type="range" min="0" max="162" value="34"><div class="range-labels"><span>One step at a time</span><span>Fast</span></div>
     <div class="transport"><button class="primary" id="play">▶ Start sorting</button><button class="secondary" id="step" title="Advance one comparison, write, or algorithm checkpoint">Step</button><button class="secondary" id="reset" title="Restore the same input and seed">Reset</button></div>
-    <div class="sound-controls"><div class="sound-row"><button id="sound" class="secondary" aria-pressed="true">Sound on</button><label for="volume">Volume <output id="volume-label">35%</output></label></div><input id="volume" type="range" min="0" max="100" value="35" aria-label="Sound volume"><label class="field tone-field" for="tone">Tone<select id="tone"><option value="reference" selected>Video-derived</option><option value="soft">Soft synth</option></select></label><div class="sound-effects"><div><label for="bass">Bass <output id="bass-label">0%</output></label><input id="bass" type="range" min="0" max="100" value="0" aria-label="Bass amount"></div><div><label for="phaser">Phaser <output id="phaser-label">0%</output></label><input id="phaser" type="range" min="0" max="100" value="0" aria-label="Phaser amount"></div></div><p id="sound-note" class="note">Video-derived tone · follows the highlighted values.</p></div>
+    <div class="sound-controls"><div class="sound-row"><button id="sound" class="secondary" aria-pressed="true">Sound on</button><label for="volume">Volume <output id="volume-label">70%</output></label></div><input id="volume" type="range" min="0" max="100" value="70" aria-label="Sound volume"><label class="field tone-field" for="tone">Tone<select id="tone"><option value="reference" selected>Video-derived</option><option value="soft">Soft synth</option></select></label><div class="sound-effects"><div><label for="bass">Bass <output id="bass-label">0%</output></label><input id="bass" type="range" min="0" max="100" value="0" aria-label="Bass amount"></div><div><label for="phaser">Phaser <output id="phaser-label">0%</output></label><input id="phaser" type="range" min="0" max="100" value="0" aria-label="Phaser amount"></div></div><p id="sound-note" class="note">Video-derived tone · follows the highlighted values.</p></div>
     <button id="benchmark" class="benchmark">Run without animation <span aria-hidden="true">↗</span></button><p id="run-note" class="note">Timing measures this browser implementation, not the video's Java code.</p>
   </aside>
   <section class="aux-panel" aria-label="Auxiliary data"><div class="aux-header"><div><span class="eyebrow">BEHIND THE SCENES</span><h2 id="aux-title">Auxiliary workspace</h2></div><span id="aux-count">No active buffer</span></div><canvas id="auxplot" role="img" aria-label="Auxiliary workspace values, grouped into up to 100 bars"></canvas><p id="aux-note">Temporary buffers and bucket counts appear here as the algorithm works.</p></section>
@@ -788,7 +788,7 @@ if(typeof module!=='undefined')module.exports=SortingEngine;
    MidiSys.java. Reference wavetables were fitted to the user's recording;
    no Java, MIDI device, soundfont download, or third-party runtime is required. */
 function SortingAudio({createContext,onError=()=>{}}={}) {
-  let context=null,master=null,wave=null,referenceWaves=null,lfo=null,voice=null,enabled=true,volume=.35,bass=0,phaser=0,tone='reference';
+  let context=null,master=null,mix=null,wave=null,referenceWaves=null,lfo=null,voice=null,enabled=true,volume=.70,bass=0,phaser=0,tone='reference';
   function silence(){
     if(!voice||!context)return;
     const old=voice;voice=null;
@@ -808,6 +808,12 @@ function SortingAudio({createContext,onError=()=>{}}={}) {
       if(!context){
         const make=createContext||(()=>new (globalThis.AudioContext||globalThis.webkitAudioContext)());
         context=make();master=context.createGain();master.gain.value=volume;master.connect(context.destination);
+        // Keep the measured bass audible while removing DC and leaving headroom
+        // when the optional effects are turned up. The limiter is linear below .8.
+        mix=context.createBiquadFilter();mix.type='highpass';mix.frequency.value=20;mix.Q.value=Math.SQRT1_2;
+        const limiter=context.createWaveShaper(),curve=new Float32Array(8193);
+        for(let i=0;i<curve.length;i++){const x=i*2/(curve.length-1)-1,a=Math.abs(x);curve[i]=Math.sign(x)*(a<=.8?a:.8+.18*Math.tanh((a-.8)/.18));}
+        limiter.curve=curve;limiter.oversample='2x';mix.connect(limiter);limiter.connect(master);
         // Mostly a sine, with a faint octave and third harmonic for warmth.
         // No dense upper spectrum, random phase, or sharp per-frame restarts.
         const real=new Float32Array(4),imag=new Float32Array([0,1,.09,.018]);
@@ -823,17 +829,30 @@ function SortingAudio({createContext,onError=()=>{}}={}) {
     if(!enabled||volume===0||!context||context.state!=='running'||!Number.isInteger(value)||value<0||value>=length)return;
     const now=context.currentTime,note=SortingAudio.noteFor(value,length),frequency=440*Math.pow(2,(note-69)/12);
     const reference=tone==='reference',zone=note<=42?0:note<=56?1:2,divisor=reference?SortingAudio.referenceTone[zone].harmonic:1;
-    // The reference retriggers at each published highlight instead of gliding
-    // one continuous oscillator. Its measured waveform already contains bass.
+    // Carry the waveform's phase across highlights. Restarting it from zero on
+    // each screen frame replaces low notes with a refresh-rate buzz.
+    const previous=reference&&voice&&now<voice.endsAt?voice:null;
+    const phase=previous?(previous.phase+(now-previous.startedAt)*previous.baseFrequency)%1:0;
+    const subPhase=previous?(previous.subPhase+(now-previous.startedAt)*previous.pitchFrequency/2)%1:0;
     if(reference&&voice)silence();
     if(voice&&now>=voice.endsAt){silence();}
     if(!voice){
       const sub=context.createOscillator(),osc=context.createOscillator(),right=context.createOscillator(),stereo=context.createChannelMerger(2),gain=context.createGain(),gate=context.createGain();
-      osc.setPeriodicWave(reference?referenceWaves[zone][0]:wave);right.setPeriodicWave(reference?referenceWaves[zone][1]:wave);
+      let pair=referenceWaves[zone];
+      if(reference&&phase){
+        const model=SortingAudio.referenceTone[zone];
+        pair=model.real.map((re,c)=>{
+          const real=new Float32Array(re.length),imag=new Float32Array(re.length);
+          for(let h=0;h<re.length;h++){const angle=2*Math.PI*h*phase,cos=Math.cos(angle),sin=Math.sin(angle);real[h]=re[h]*cos+model.imag[c][h]*sin;imag[h]=model.imag[c][h]*cos-re[h]*sin;}
+          return context.createPeriodicWave(real,imag,{disableNormalization:true});
+        });
+      }
+      osc.setPeriodicWave(reference?pair[0]:wave);right.setPeriodicWave(reference?pair[1]:wave);
       osc.frequency.value=right.frequency.value=frequency/divisor;gain.gain.value=0;
       osc.connect(stereo,0,0);right.connect(stereo,0,1);
       const subLevel=context.createGain(),dry=context.createGain(),wet=context.createGain();
       sub.type='sine';sub.frequency.value=frequency/2;subLevel.gain.value=bass*.65;
+      if(reference&&subPhase)sub.setPeriodicWave(context.createPeriodicWave(new Float32Array([0,Math.sin(2*Math.PI*subPhase)]),new Float32Array([0,Math.cos(2*Math.PI*subPhase)]),{disableNormalization:true}));
       dry.gain.value=1-phaser*.5;wet.gain.value=phaser*.5;
       // Mix a swept four-stage all-pass chain with the dry voice. The sub-bass
       // bypasses it so the bass stays solid as the upper voice moves.
@@ -845,17 +864,20 @@ function SortingAudio({createContext,onError=()=>{}}={}) {
         filters.push(filter);depths.push(depth);
       }
       previous.connect(wet);wet.connect(gain);stereo.connect(dry);dry.connect(gain);
-      sub.connect(subLevel);subLevel.connect(gain);gain.connect(gate);gate.connect(master);
-      const current={osc,right,stereo,sub,subLevel,dry,wet,gain,gate,filters,depths,note,endsAt:now};voice=current;
+      sub.connect(subLevel);subLevel.connect(gain);gain.connect(gate);gate.connect(mix);
+      const current={osc,right,stereo,sub,subLevel,dry,wet,gain,gate,filters,depths,note,phase,subPhase,baseFrequency:frequency/divisor,pitchFrequency:frequency,startedAt:now,endsAt:now};voice=current;
       osc.onended=()=>{osc.disconnect();right.disconnect();stereo.disconnect();sub.disconnect();subLevel.disconnect();dry.disconnect();wet.disconnect();gain.disconnect();gate.disconnect();for(const filter of filters)filter.disconnect();for(const depth of depths){lfo.disconnect(depth);depth.disconnect();}if(voice===current)voice=null;};
       osc.start(now);right.start(now);sub.start(now);
     }else if(voice.note!==note){
       // Keep oscillator phase continuous while approaching the same mapped pitch.
       voice.osc.frequency.setTargetAtTime(frequency,now,.018);voice.right.frequency.setTargetAtTime(frequency,now,.018);voice.sub.frequency.setTargetAtTime(frequency/2,now,.018);voice.note=note;
     }
-    const level=reference?.18:.12,hold=step?.045:.08,release=step?.025:.05;
+    const level=reference?.55:.12,hold=step?.045:.08,release=step?.025:.05;
     voice.gain.gain.cancelScheduledValues(now);
-    voice.gain.gain.setTargetAtTime(level,now,reference?.0025:.014);
+    // Complement the old voice's eight-millisecond fade instead of overlapping
+    // two full-level attacks. Stable notes retain complete bass cycles.
+    if(reference){voice.gain.gain.setValueAtTime(0,now);voice.gain.gain.linearRampToValueAtTime(level,now+(previous?.008:.003));}
+    else voice.gain.gain.setTargetAtTime(level,now,.014);
     voice.gain.gain.setTargetAtTime(0,now+hold,release);
     voice.endsAt=now+(step?.23:.55);
     // Replacing the scheduled stop extends this one voice while writes continue.
@@ -902,7 +924,7 @@ const slow=new Set(['gnome','shaker','bubble','odd','double','insertion','select
 // Dense low/mid-range stops keep slower algorithms easy to watch; wider high
 // ranges still reach a million checkpoints without an impractically long slider.
 const speeds=[...Array.from({length:10},(_,i)=>i+1),...Array.from({length:9},(_,i)=>(i+2)*10),...[100,1000,10000,100000].flatMap(base=>Array.from({length:36},(_,i)=>base+(i+1)*base/4))];
-$('speed').max=String(speeds.length-1);$('speed').value=String(speeds.indexOf(20000));
+$('speed').max=String(speeds.length-1);$('speed').value=String(speeds.indexOf(500));
 $('algorithm').replaceChildren(...algorithms.map(([id,name])=>{const o=document.createElement('option');o.value=id;o.textContent=name;return o;}));
 const canvas=$('plot'),ctx=canvas.getContext('2d',{alpha:false}),auxcanvas=$('auxplot'),auxctx=auxcanvas.getContext('2d');
 let array=new Int32Array(0),initial=null,worker=null,token=0,ready=false,pending=false,running=false,done=false,started=false,fast=false;
@@ -978,3 +1000,4 @@ window.addEventListener('pagehide',()=>{sound.dispose();worker?.terminate();URL.
 })();
 
 </script></body></html>
+

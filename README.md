@@ -12,19 +12,23 @@ Select an algorithm and press **Start sorting**. Pause and use **Step** to advan
 
 The inputs are permutations of the unique integer ranks 0 through n−1, with sizes from 64 to 50,000. For Bubble, Gnome, Cycle, Selection, and other quadratic sorts, start with 256 or 1,024 elements. All algorithms support 50,000, but slow methods can require billions of operations. The controls remain responsive and Reset cancels the worker immediately.
 
-The playback slider has 163 speed settings from 1 to 1,000,000 checkpoints per frame, including 500. Between 100 and 1,000 it advances in increments of 25; higher ranges use progressively wider increments. Arrow keys move one setting at a time. Changing speed takes effect on the next worker batch without resetting the experiment.
+The playback slider starts at 500 checkpoints per frame so the first sort lasts long enough to hear. It has 163 settings from 1 to 1,000,000 checkpoints per frame. Between 100 and 1,000 it advances in increments of 25; higher ranges use progressively wider increments. Arrow keys move one setting at a time. Changing speed takes effect on the next worker batch without resetting the experiment.
 
 ### Sound
 
 Sound starts after you click **Start sorting** or **Step**. Use **Sound on/off** and the volume slider to control it. Pause, reset, completion, and hiding the tab silence the instrument. **Run without animation** is silent.
 
-**Tone** defaults to **Video-derived**. Its three stereo wavetables were fitted from short periodic low, middle, and high passages in the supplied video audio (around 38, 55, and 63 seconds), using cycle alignment, averaging, and Fourier coefficients. This captures the recording's waveform and bass balance more directly than choosing a generic MIDI instrument. It uses a short attack and retriggers for each published highlight. **Soft synth** retains the earlier sine-led voice and smooth pitch changes for comparison. This is a compact tone model, not a reconstruction of the original synthesizer or a replay of the recording. Different algorithms, batching, timing, and note transitions can still sound different.
+**Tone** defaults to **Video-derived**, with **Volume at 70%**. Its three stereo wavetables were fitted from short periodic low, middle, and high passages in the supplied video audio (around 38, 55, and 63 seconds), using cycle alignment, averaging, and Fourier coefficients. The sound carries its waveform phase across highlighted values and crossfades note transitions over eight milliseconds. This preserves complete low-frequency cycles even when the display updates faster than the bass oscillates. The previous implementation restarted from zero every frame, turning some low notes into a refresh-rate buzz.
+
+The output level is calibrated against the recording's absolute signal level, rather than only its normalized frequency distribution. The earlier default was approximately 16 dB quieter in a five-second Merge Sort comparison. A 20 Hz high-pass removes DC and a soft peak limiter leaves headroom for optional effects; the limiter is linear below its threshold. **Soft synth** retains the earlier sine-led voice and smooth pitch changes for comparison. This is a compact tone model, not a reconstruction of the original synthesizer or a replay of the recording. Different algorithms, batching, timing, and note transitions can still sound different. Numerical agreement does not establish an exact perceptual match on every speaker system.
 
 **Bass** adds an optional sine layer one octave below the mapped note. **Phaser** blends an optional slow, roughly seven-second filter sweep into the upper voice; the bass bypasses it. Both default to 0%, since the measured reference tone already contains low-frequency and stereo detail. These controls are custom effects, not a claim about effects used in the video. All layers stop together when playback stops.
 
 The note mapping comes from [the original 2022 MidiSys.java](https://github.com/66-m/sorting-visualizer/blob/d70a61e48f649a9f66c681816f02a90145596c79/src/main/java/io/github/compilerstuck/Sound/MidiSys.java): MIDI note `28 + floor(40 * (value + 1) / length)`. Pitch follows the value at the highlighted position, not swap distance or circle angle. The source's `Marker.SET` also marks searches and auxiliary preparation: it does not mean only main-array writes. The latest checkpoint's highest highlighted index determines the tone, instead of accumulating all visited indices across a batch. Counting highlights the value-indexed position used by the reference; Merge highlights the next position while merging two nonempty runs. Rendering and batching still differ from the Java application.
 
 Idle notes fade within roughly half a second, individual steps make a short tone, and pause/mute/reset use an eight-millisecond fade. No Java, MIDI hardware, network audio downloads, or external audio dependencies are used; the embedded reference model and sound engine work in the standalone HTML too. Reshuffle remains instantaneous, so the recording's animated shuffle introduction is not reproduced.
+
+Background reading: [iZotope on low-end impact and attack](https://www.izotope.com/community/blog/eq-cheat-sheet), and [Genelec on frequency response, listening level, and temporal response](https://www.genelec.com/-/blog/how-to-analyse-frequency-and-temporal-responses). The calibration uses the supplied recording as its reference; those articles inform the diagnosis rather than prescribing an added kick-drum sound.
 
 **Run without animation** restores the same input and seed, then processes large batches with the main circle held still until completion. The compute counter measures time spent advancing the instrumented JavaScript algorithm. It excludes pauses, rendering, worker messaging, and waiting between frames. It includes generator and counter overhead and is not a calibrated benchmark or a comparison with Java/.NET.
 
@@ -60,6 +64,8 @@ node serve.cjs
 ```
 
 The preview is at http://127.0.0.1:4173. Reload after rebuilding. No npm install is needed. The build updates both `dist/index.html` for local preview and the root `index.html` served by GitHub Pages. Commit the rebuilt root file to publish changes from the `main` branch. Running tests covers 260 small cases across all 20 algorithms, twelve 50,000-element cases, input validation, auxiliary preparation, and the worker's step/completion protocol.
+
+Optional audio-render regression: `node test-audio-render.cjs` uses Playwright and an installed Microsoft Edge. These are development-test dependencies only, not app dependencies. It renders real Web Audio output offline to verify 41 Hz bass survives 30/60/120 highlight updates per second, remains at a comparable level across those rates, stops cleanly, and retains clipping headroom with the effects at maximum.
 
 ## Fidelity and deliberate adaptations
 
