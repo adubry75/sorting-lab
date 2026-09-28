@@ -12,9 +12,13 @@ Select an algorithm and press **Start sorting**. Pause and use **Step** to advan
 
 The inputs are permutations of the unique integer ranks 0 through n−1, with sizes from 64 to 50,000. For Bubble, Gnome, Cycle, Selection, and other quadratic sorts, start with 256 or 1,024 elements. All algorithms support 50,000, but slow methods can require billions of operations. The controls remain responsive and Reset cancels the worker immediately.
 
+The playback slider has 163 speed settings from 1 to 1,000,000 checkpoints per frame, including 500. Between 100 and 1,000 it advances in increments of 25; higher ranges use progressively wider increments. Arrow keys move one setting at a time. Changing speed takes effect on the next worker batch without resetting the experiment.
+
 ### Sound
 
 Sound starts after you click **Start sorting** or **Step**. Use **Sound on/off** and the volume slider to control it. Pause, reset, completion, and hiding the tab silence the instrument. **Run without animation** is silent.
+
+**Bass** adds a smooth sine layer one octave below the mapped note (default 55%). **Phaser** blends a slow, roughly seven-second filter sweep into the upper voice (default 60%); the bass bypasses the phaser to stay steady. Set either effect to 0% to remove it, or both to 0% for the plain soft tone. These are custom sound-design choices, not a claim about effects used in the video. The main note mapping remains unchanged, and all layers stop together when playback stops.
 
 The note mapping comes from [the original 2022 MidiSys.java](https://github.com/66-m/sorting-visualizer/blob/d70a61e48f649a9f66c681816f02a90145596c79/src/main/java/io/github/compilerstuck/Sound/MidiSys.java): MIDI note `28 + floor(40 * (value + 1) / length)`. Pitch follows the written value, not swap distance or circle angle. Comparisons and auxiliary writes don't trigger notes. When a display batch contains several writes, the highest written index wins, following the original visualization's ascending-index draw order. Animation batching differs from the Java application, so the note sequence and timing can differ from the recording.
 

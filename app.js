@@ -23,7 +23,10 @@ const algorithms=[
  ['tim','Tim Sort · video variant','Hybrid','O(n log n)','Insertion-sort fixed runs of 32, then merge progressively larger runs. This is a simplified TimSort variant.','Fine ordered curves merge into larger petals and eventually into the finished circle.',567]
 ];
 const slow=new Set(['gnome','shaker','bubble','odd','double','insertion','selection','cycle']);
-const speeds=[1,10,100,1000,5000,20000,100000,1000000];
+// Dense low/mid-range stops keep slower algorithms easy to watch; wider high
+// ranges still reach a million checkpoints without an impractically long slider.
+const speeds=[...Array.from({length:10},(_,i)=>i+1),...Array.from({length:9},(_,i)=>(i+2)*10),...[100,1000,10000,100000].flatMap(base=>Array.from({length:36},(_,i)=>base+(i+1)*base/4))];
+$('speed').max=String(speeds.length-1);$('speed').value=String(speeds.indexOf(20000));
 $('algorithm').replaceChildren(...algorithms.map(([id,name])=>{const o=document.createElement('option');o.value=id;o.textContent=name;return o;}));
 const canvas=$('plot'),ctx=canvas.getContext('2d',{alpha:false}),auxcanvas=$('auxplot'),auxctx=auxcanvas.getContext('2d');
 let array=new Int32Array(0),initial=null,worker=null,token=0,ready=false,pending=false,running=false,done=false,started=false,fast=false;
@@ -32,9 +35,11 @@ let lastMetrics={comparisons:0,writes:0,auxWrites:0,swaps:0,computeMs:0};
 const workerUrl=URL.createObjectURL(new Blob(['('+SortingEngine.toString()+')(self);'],{type:'application/javascript'}));
 let soundStep=false;
 const sound=new SortingAudio({onError:()=>{sound.setEnabled(false);soundControls();$('sound-note').textContent='Sound could not start. Click Sound on to try again.';}});
-function soundControls(){$('sound').textContent=sound.enabled?'Sound on':'Sound off';$('sound').setAttribute('aria-pressed',String(sound.enabled));$('volume-label').textContent=Math.round(sound.volume*100)+'%';}
-$('sound').addEventListener('click',()=>{sound.setEnabled(!sound.enabled);if(sound.enabled){sound.unlock();$('sound-note').textContent='Soft tones · pitch follows the value being written.';}soundControls();});
+function soundControls(){$('sound').textContent=sound.enabled?'Sound on':'Sound off';$('sound').setAttribute('aria-pressed',String(sound.enabled));$('volume-label').textContent=Math.round(sound.volume*100)+'%';$('bass-label').textContent=Math.round(sound.bass*100)+'%';$('phaser-label').textContent=Math.round(sound.phaser*100)+'%';}
+$('sound').addEventListener('click',()=>{sound.setEnabled(!sound.enabled);if(sound.enabled){sound.unlock();$('sound-note').textContent='Warm bass, slow swirl · pitch still follows each value.';}soundControls();});
 $('volume').addEventListener('input',()=>{sound.setVolume(Number($('volume').value)/100);soundControls();});
+$('bass').addEventListener('input',()=>{sound.setBass(Number($('bass').value)/100);soundControls();});
+$('phaser').addEventListener('input',()=>{sound.setPhaser(Number($('phaser').value)/100);soundControls();});
 soundControls();
 function seeded(n,pattern,seed){const a=Int32Array.from({length:n},(_,i)=>i);let s=seed>>>0;const rand=()=>{s=(Math.imul(s,1664525)+1013904223)>>>0;return s/4294967296;};const swap=(i,j)=>{const t=a[i];a[i]=a[j];a[j]=t;};
  if(pattern==='reverse')a.reverse();else if(pattern==='random')for(let i=n-1;i>0;i--)swap(i,Math.floor(rand()*(i+1)));else if(pattern==='almost')for(let k=0;k<Math.max(1,Math.floor(n*.01));k++){const i=Math.floor(rand()*n);swap(i,Math.min(n-1,i+1+Math.floor(rand()*8)));}return a;}
@@ -79,7 +84,7 @@ function play(){if(!ready)return;if(done){sound.unlock();reset(true);return;}run
 function step(){if(!ready||running||done||pending)return;sound.unlock();soundStep=true;started=true;fast=false;state('Paused');tick(true);}
 $('play').addEventListener('click',play);$('step').addEventListener('click',step);$('reset').addEventListener('click',()=>reset());$('shuffle').addEventListener('click',()=>{const x=new Uint32Array(1);crypto.getRandomValues(x);$('seed').value=x[0];reset();});$('benchmark').addEventListener('click',()=>reset(true,true));
 for(const id of ['algorithm','size','pattern','seed'])$(id).addEventListener('change',()=>reset());
-function speedLabel(){const n=speeds[Number($('speed').value)];$('speed-label').textContent=fmt.format(n)+' step'+(n===1?'':'s')+' / frame';}$('speed').addEventListener('input',speedLabel);
+function speedLabel(){const n=speeds[Number($('speed').value)],description=fmt.format(n)+' step'+(n===1?'':'s')+' per frame';$('speed-label').textContent=description.replace(' per frame',' / frame');$('speed').setAttribute('aria-valuetext',description);}$('speed').addEventListener('input',speedLabel);
 $('download').addEventListener('click',()=>{const html='<!doctype html>\n'+document.documentElement.outerHTML,url=URL.createObjectURL(new Blob([html],{type:'text/html'})),a=document.createElement('a');a.href=url;a.download='sorting-lab.html';a.click();setTimeout(()=>URL.revokeObjectURL(url),2000);});
 function snapshot(){return {algorithm:$('algorithm').value,elements:array.length,seed:Number($('seed').value),pattern:$('pattern').value,state:$('state-pill').textContent,phase:lastPhase,metrics:{...lastMetrics},correctlyPlaced:finalPositions};}
 async function settle(){const deadline=performance.now()+5000;while((!ready||pending)&&performance.now()<deadline){if($('state-pill').dataset.state==='error')throw new Error(lastPhase);await new Promise(resolve=>setTimeout(resolve,10));}if(!ready||pending)throw new Error('Experiment is still initializing');if(dirty)draw();return snapshot();}
