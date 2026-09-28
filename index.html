@@ -1,0 +1,870 @@
+<!doctype html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#0b0e14"><meta name="description" content="Watch and explore 20 sorting algorithms in an interactive rainbow circle. Runs entirely in your browser."><title>Sorting Lab — order out of chaos</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230b0e14'/%3E%3Ccircle cx='16' cy='16' r='10' fill='none' stroke='%239cb5ff' stroke-width='3'/%3E%3Ccircle cx='16' cy='16' r='4' fill='%23df90e8'/%3E%3C/svg%3E">
+<style>:root{color-scheme:dark;--bg:#0b0e14;--panel:#10151e;--edge:#252d3d;--text:#e9edf5;--muted:#929eb3;--accent:#b3c5ff;--soft:#202c47;font-family:Inter,Segoe UI,system-ui,sans-serif;font-size:16px}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text)}button,input,select{font:inherit}button,a,input,select{-webkit-tap-highlight-color:transparent}button{cursor:pointer}button:disabled{opacity:.4;cursor:default}button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:4px}button{transition:background .15s,color .15s}a{color:var(--muted);text-underline-offset:4px}a:hover{color:var(--text)}.top{max-width:1400px;margin:auto;height:92px;display:flex;align-items:center;gap:28px;padding:0 40px;border-bottom:1px solid var(--edge)}.brand{text-decoration:none;color:var(--text);display:flex;gap:8px;align-items:center;font-size:22px;letter-spacing:-.7px}.brand b{font-weight:400;color:var(--muted)}.brand-mark{width:27px;height:27px;border-radius:50%;background:conic-gradient(#c899ff,#769aff,#72e6cb,#e6d080,#ed8097,#c899ff);position:relative;margin-right:6px}.brand-mark:after{content:'';position:absolute;inset:4px;border-radius:50%;background:var(--bg)}.top-note{font-size:14px;color:var(--muted)}.text-button{margin-left:auto;background:none;border:0;color:var(--text);font-size:14px;padding:12px 0}.text-button span{margin-left:8px;color:var(--accent)}main{max-width:1400px;margin:auto;padding:32px 40px 24px;display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:26px 36px}.visual-panel{min-width:0}.stage-heading{display:flex;justify-content:space-between;align-items:center;padding-top:4px}.eyebrow{font-size:12px;font-weight:600;letter-spacing:1.6px;color:var(--muted)}h1{font-size:26px;letter-spacing:-.8px;font-weight:500;margin:8px 0 0}h2{font-size:17px;font-weight:500;margin:6px 0 0}.pill{border:1px solid var(--edge);padding:6px 12px;border-radius:30px;font-size:13px;color:var(--accent)}.canvas-wrap{position:relative;max-width:660px;margin:0 auto}.canvas-wrap canvas{display:block;width:100%;aspect-ratio:1}.stage-caption{position:absolute;bottom:14px;left:0;right:0;text-align:center;pointer-events:none;display:flex;gap:8px;justify-content:center;color:var(--muted);font-size:13px}.stage-caption #placed{color:var(--text);font-variant-numeric:tabular-nums}.phase-row{min-height:40px;display:flex;gap:8px;align-items:center;color:var(--muted);font-size:13px;flex-wrap:wrap}.phase-row #phase{color:#c5cddd}.phase-dot{width:5px;height:5px;flex:none;background:var(--accent);border-radius:50%}#element-label{margin-left:auto}.metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));border-top:1px solid var(--edge);border-bottom:1px solid var(--edge);padding:19px 0;gap:10px}.metrics div>span{color:var(--muted);font-size:12px;display:block}.metrics strong{font-weight:450;display:block;font-size:21px;margin-top:7px;font-variant-numeric:tabular-nums;letter-spacing:-.5px}.hint{border:1px solid #556179;border-radius:50%;font-size:10px;width:14px;height:14px;padding:0;background:none;color:var(--muted);vertical-align:middle}.legend{display:flex;gap:18px;flex-wrap:wrap;color:var(--muted);font-size:12px;padding-top:18px}.legend span{display:flex;align-items:center;gap:7px}.legend-ring{height:10px;width:10px;border:1px solid var(--muted);border-radius:50%}.legend-point{width:5px;height:5px;background:#bca8ef;border-radius:50%}.legend-spectrum{width:20px;height:5px;background:linear-gradient(90deg,#b384df,#77b8e4,#85dab2,#edce7b,#dd82ae);border-radius:2px}.controls{border-left:1px solid var(--edge);padding-left:30px}.control-heading{display:flex;justify-content:space-between;margin:5px 0 22px}.control-heading>span:last-child{font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}.field{display:flex;flex-direction:column;gap:8px;font-size:14px;color:#c7cfdf;min-width:0}.field select,.field input{background:#151b26;color:var(--text);border:1px solid #2c364a;border-radius:7px;min-height:44px;padding:10px 12px;min-width:0;width:100%}#algorithm{font-size:16px}.algorithm-info{margin:18px 0 24px;font-size:14px;line-height:1.6}.info-tags{display:flex;gap:7px;flex-wrap:wrap}.info-tags span{font-size:12px;background:#192231;padding:3px 8px;border-radius:4px;color:#becae5}.algorithm-info p{color:#c0c9d9;margin:12px 0}.watch{border-left:2px solid #768dcc;padding-left:12px;margin:18px 0}.watch>span{font-size:11px;letter-spacing:1.3px;color:var(--accent)}.watch p{font-size:14px;margin:6px 0;color:var(--muted)}.algorithm-info a{font-size:12px}.input-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}.seed-row{display:grid;grid-template-columns:1fr auto;gap:12px;align-items:end;margin-top:16px}.secondary{background:#19212f;color:var(--text);border:1px solid #313b50;border-radius:7px;padding:11px 13px;font-size:14px;min-height:44px}.secondary:hover{background:#273247}.speed-label{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;font-size:14px;margin-top:24px}.speed-label output{font-size:12px;color:var(--accent)}input[type=range]{width:100%;accent-color:var(--accent);margin:14px 0 6px;cursor:pointer}.range-labels{display:flex;justify-content:space-between;font-size:11px;color:var(--muted)}.transport{display:grid;grid-template-columns:1fr auto auto;gap:7px;margin-top:22px}.primary{background:var(--accent);color:#13213d;font-size:14px;font-weight:600;border:0;border-radius:7px;padding:12px;min-height:44px}.primary:hover{background:#cbd7ff}.benchmark{display:flex;justify-content:space-between;width:100%;color:#c4cee5;background:none;border:0;border-bottom:1px solid var(--edge);font-size:14px;text-align:left;padding:17px 0 14px}.benchmark:hover{color:var(--accent)}.note{font-size:12px;color:var(--muted);line-height:1.5;margin:12px 0 0}.aux-panel{grid-column:1/-1;border-top:1px solid var(--edge);padding-top:22px}.aux-header{display:flex;justify-content:space-between;align-items:center;gap:14px}#aux-count{color:var(--muted);font-size:12px}#auxplot{width:100%;height:90px;display:block;margin-top:16px}#aux-note{font-size:12px;color:var(--muted);margin:8px 0}footer{grid-column:1/-1;display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;border-top:1px solid var(--edge);padding-top:20px;font-size:12px;color:var(--muted);line-height:1.6}#state-pill[data-state=complete]{color:#88dfbd;border-color:#30594a}#state-pill[data-state=error]{color:#ffadaf;border-color:#713a43}@media(min-width:1500px){.canvas-wrap{max-width:690px}}@media(max-width:1050px){main{padding:24px;gap:24px;grid-template-columns:minmax(0,1fr) 310px}.controls{padding-left:22px}.top{padding:0 24px}.metrics{grid-template-columns:repeat(2,minmax(0,1fr));gap:20px}.legend{gap:12px}.top-note{display:none}}@media(max-width:760px){.top{height:74px;padding:0 20px}.brand{font-size:20px}main{display:flex;flex-direction:column;padding:22px 20px;gap:28px}.controls{border-left:0;border-top:1px solid var(--edge);padding:24px 0 0}.canvas-wrap{max-width:540px}.metrics{grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}.metrics strong{font-size:17px}.metrics div>span{font-size:11px}.stage-caption{bottom:0}.legend{line-height:1.5}.text-button{font-size:12px}h1{font-size:23px}.aux-panel{padding-top:24px}}@media(max-width:380px){.metrics{grid-template-columns:1fr 1fr}.top{gap:10px}.transport{grid-template-columns:1fr auto auto}.secondary{padding:10px}.phase-row{font-size:12px}.legend{gap:10px}}
+.controls{display:flex;flex-direction:column}.controls>.control-heading{order:0}.controls>.field{order:1}.controls>.transport{order:2;margin:16px 0 20px}.controls>.input-row{order:3}.controls>.seed-row{order:4}.controls>.speed-label{order:5}.controls>#speed{order:6}.controls>.range-labels{order:7}.controls>.benchmark{order:8}.controls>.note{order:9}.controls>.algorithm-info{order:10;border-top:1px solid var(--edge);padding-top:20px;margin-top:24px}
+</style></head><body>
+<header class="top"><a class="brand" href="#" aria-label="Sorting Lab home"><span class="brand-mark" aria-hidden="true"></span>Sorting <b>Lab</b></a><span class="top-note">20 algorithms. One circle.</span><button class="text-button" id="download">Download app <span aria-hidden="true">↗</span></button></header>
+<main>
+  <section class="visual-panel" aria-label="Sorting visualization">
+    <div class="stage-heading"><div><span class="eyebrow">LIVE VISUALIZATION</span><h1 id="current-name">Merge Sort</h1></div><span id="state-pill" class="pill">Ready</span></div>
+    <div class="canvas-wrap"><canvas id="plot" role="img" aria-label="Rainbow scatter plot of array positions. Correctly placed values sit on the outer circle."></canvas><div class="stage-caption"><span id="placed">0.0%</span><span>in final position</span></div></div>
+    <div class="phase-row"><span class="phase-dot" aria-hidden="true"></span><span id="phase" role="status" aria-live="polite">Shuffled and ready</span><span id="element-label">50,000 elements</span></div>
+    <div class="metrics"><div><span>Comparisons</span><strong id="comparisons">0</strong></div><div><span>Main writes</span><strong id="writes">0</strong></div><div><span>Auxiliary writes</span><strong id="auxwrites">0</strong></div><div><span>Compute time <button class="hint" title="Time spent advancing the instrumented algorithm. Excludes waiting between frames; includes generator and counter overhead." aria-label="Compute time excludes waiting but includes instrumentation">?</button></span><strong id="compute">0 ms</strong></div></div>
+    <div class="legend"><span><i class="legend-ring"></i> Rim = correct position</span><span><i class="legend-point"></i> Inward = misplaced</span><span><i class="legend-spectrum"></i> Color = value</span></div>
+  </section>
+  <aside class="controls" aria-label="Experiment controls">
+    <div class="control-heading"><span class="eyebrow">THE EXPERIMENT</span><span id="algorithm-index">01 / 20</span></div>
+    <label class="field" for="algorithm">Algorithm<select id="algorithm"><option value="merge">Merge Sort</option></select></label>
+    <div class="algorithm-info"><div class="info-tags"><span id="family">Divide & conquer</span><span id="complexity">O(n log n)</span></div><p id="description">Split the array into smaller runs, then merge them back into order.</p><div class="watch"><span>WATCH FOR</span><p id="watch">Thin rainbow petals join into larger curves before settling on the rim.</p></div><a id="chapter" href="https://www.youtube.com/watch?v=M3OuTtW662Y" target="_blank" rel="noopener">See it in the original video ↗</a></div>
+    <div class="input-row"><label class="field" for="size">Elements<select id="size"><option value="64">64</option><option value="256">256</option><option value="1024">1,024</option><option value="5000">5,000</option><option value="10000">10,000</option><option value="50000" selected>50,000</option></select></label><label class="field" for="pattern">Starting order<select id="pattern"><option value="random">Shuffled</option><option value="almost">Nearly sorted</option><option value="reverse">Reversed</option><option value="sorted">Sorted</option></select></label></div>
+    <div class="seed-row"><label class="field" for="seed">Shuffle seed<input id="seed" type="number" min="0" max="4294967295" step="1" value="42"></label><button id="shuffle" class="secondary" title="Create a new shuffle seed">Reshuffle</button></div>
+    <label class="speed-label" for="speed"><span>Playback speed</span><output id="speed-label">20,000 steps / frame</output></label><input id="speed" type="range" min="0" max="7" value="5"><div class="range-labels"><span>One step at a time</span><span>Fast</span></div>
+    <div class="transport"><button class="primary" id="play">▶ Start sorting</button><button class="secondary" id="step" title="Advance one comparison, write, or algorithm checkpoint">Step</button><button class="secondary" id="reset" title="Restore the same input and seed">Reset</button></div>
+    <button id="benchmark" class="benchmark">Run without animation <span aria-hidden="true">↗</span></button><p id="run-note" class="note">Timing measures this browser implementation, not the video's Java code.</p>
+  </aside>
+  <section class="aux-panel" aria-label="Auxiliary data"><div class="aux-header"><div><span class="eyebrow">BEHIND THE SCENES</span><h2 id="aux-title">Auxiliary workspace</h2></div><span id="aux-count">No active buffer</span></div><canvas id="auxplot" role="img" aria-label="Auxiliary workspace values, grouped into up to 100 bars"></canvas><p id="aux-note">Temporary buffers and bucket counts appear here as the algorithm works.</p></section>
+  <footer><span>Inspired by <a href="https://www.youtube.com/watch?v=M3OuTtW662Y" target="_blank" rel="noopener">CompilerStuck's visualization</a> · <a href="https://github.com/66-m/sorting-visualizer" target="_blank" rel="noopener">Algorithm source</a> · AGPL-3.0</span><span>Runs locally in your browser</span></footer>
+</main><noscript>This interactive sorting lab needs JavaScript enabled.</noscript>
+<script type="text/plain" id="license">                    GNU AFFERO GENERAL PUBLIC LICENSE
+                       Version 3, 19 November 2007
+
+ Copyright (C) 2007 Free Software Foundation, Inc. <https://fsf.org/>
+ Everyone is permitted to copy and distribute verbatim copies
+ of this license document, but changing it is not allowed.
+
+                            Preamble
+
+  The GNU Affero General Public License is a free, copyleft license for
+software and other kinds of works, specifically designed to ensure
+cooperation with the community in the case of network server software.
+
+  The licenses for most software and other practical works are designed
+to take away your freedom to share and change the works.  By contrast,
+our General Public Licenses are intended to guarantee your freedom to
+share and change all versions of a program--to make sure it remains free
+software for all its users.
+
+  When we speak of free software, we are referring to freedom, not
+price.  Our General Public Licenses are designed to make sure that you
+have the freedom to distribute copies of free software (and charge for
+them if you wish), that you receive source code or can get it if you
+want it, that you can change the software or use pieces of it in new
+free programs, and that you know you can do these things.
+
+  Developers that use our General Public Licenses protect your rights
+with two steps: (1) assert copyright on the software, and (2) offer
+you this License which gives you legal permission to copy, distribute
+and/or modify the software.
+
+  A secondary benefit of defending all users' freedom is that
+improvements made in alternate versions of the program, if they
+receive widespread use, become available for other developers to
+incorporate.  Many developers of free software are heartened and
+encouraged by the resulting cooperation.  However, in the case of
+software used on network servers, this result may fail to come about.
+The GNU General Public License permits making a modified version and
+letting the public access it on a server without ever releasing its
+source code to the public.
+
+  The GNU Affero General Public License is designed specifically to
+ensure that, in such cases, the modified source code becomes available
+to the community.  It requires the operator of a network server to
+provide the source code of the modified version running there to the
+users of that server.  Therefore, public use of a modified version, on
+a publicly accessible server, gives the public access to the source
+code of the modified version.
+
+  An older license, called the Affero General Public License and
+published by Affero, was designed to accomplish similar goals.  This is
+a different license, not a version of the Affero GPL, but Affero has
+released a new version of the Affero GPL which permits relicensing under
+this license.
+
+  The precise terms and conditions for copying, distribution and
+modification follow.
+
+                       TERMS AND CONDITIONS
+
+  0. Definitions.
+
+  "This License" refers to version 3 of the GNU Affero General Public License.
+
+  "Copyright" also means copyright-like laws that apply to other kinds of
+works, such as semiconductor masks.
+
+  "The Program" refers to any copyrightable work licensed under this
+License.  Each licensee is addressed as "you".  "Licensees" and
+"recipients" may be individuals or organizations.
+
+  To "modify" a work means to copy from or adapt all or part of the work
+in a fashion requiring copyright permission, other than the making of an
+exact copy.  The resulting work is called a "modified version" of the
+earlier work or a work "based on" the earlier work.
+
+  A "covered work" means either the unmodified Program or a work based
+on the Program.
+
+  To "propagate" a work means to do anything with it that, without
+permission, would make you directly or secondarily liable for
+infringement under applicable copyright law, except executing it on a
+computer or modifying a private copy.  Propagation includes copying,
+distribution (with or without modification), making available to the
+public, and in some countries other activities as well.
+
+  To "convey" a work means any kind of propagation that enables other
+parties to make or receive copies.  Mere interaction with a user through
+a computer network, with no transfer of a copy, is not conveying.
+
+  An interactive user interface displays "Appropriate Legal Notices"
+to the extent that it includes a convenient and prominently visible
+feature that (1) displays an appropriate copyright notice, and (2)
+tells the user that there is no warranty for the work (except to the
+extent that warranties are provided), that licensees may convey the
+work under this License, and how to view a copy of this License.  If
+the interface presents a list of user commands or options, such as a
+menu, a prominent item in the list meets this criterion.
+
+  1. Source Code.
+
+  The "source code" for a work means the preferred form of the work
+for making modifications to it.  "Object code" means any non-source
+form of a work.
+
+  A "Standard Interface" means an interface that either is an official
+standard defined by a recognized standards body, or, in the case of
+interfaces specified for a particular programming language, one that
+is widely used among developers working in that language.
+
+  The "System Libraries" of an executable work include anything, other
+than the work as a whole, that (a) is included in the normal form of
+packaging a Major Component, but which is not part of that Major
+Component, and (b) serves only to enable use of the work with that
+Major Component, or to implement a Standard Interface for which an
+implementation is available to the public in source code form.  A
+"Major Component", in this context, means a major essential component
+(kernel, window system, and so on) of the specific operating system
+(if any) on which the executable work runs, or a compiler used to
+produce the work, or an object code interpreter used to run it.
+
+  The "Corresponding Source" for a work in object code form means all
+the source code needed to generate, install, and (for an executable
+work) run the object code and to modify the work, including scripts to
+control those activities.  However, it does not include the work's
+System Libraries, or general-purpose tools or generally available free
+programs which are used unmodified in performing those activities but
+which are not part of the work.  For example, Corresponding Source
+includes interface definition files associated with source files for
+the work, and the source code for shared libraries and dynamically
+linked subprograms that the work is specifically designed to require,
+such as by intimate data communication or control flow between those
+subprograms and other parts of the work.
+
+  The Corresponding Source need not include anything that users
+can regenerate automatically from other parts of the Corresponding
+Source.
+
+  The Corresponding Source for a work in source code form is that
+same work.
+
+  2. Basic Permissions.
+
+  All rights granted under this License are granted for the term of
+copyright on the Program, and are irrevocable provided the stated
+conditions are met.  This License explicitly affirms your unlimited
+permission to run the unmodified Program.  The output from running a
+covered work is covered by this License only if the output, given its
+content, constitutes a covered work.  This License acknowledges your
+rights of fair use or other equivalent, as provided by copyright law.
+
+  You may make, run and propagate covered works that you do not
+convey, without conditions so long as your license otherwise remains
+in force.  You may convey covered works to others for the sole purpose
+of having them make modifications exclusively for you, or provide you
+with facilities for running those works, provided that you comply with
+the terms of this License in conveying all material for which you do
+not control copyright.  Those thus making or running the covered works
+for you must do so exclusively on your behalf, under your direction
+and control, on terms that prohibit them from making any copies of
+your copyrighted material outside their relationship with you.
+
+  Conveying under any other circumstances is permitted solely under
+the conditions stated below.  Sublicensing is not allowed; section 10
+makes it unnecessary.
+
+  3. Protecting Users' Legal Rights From Anti-Circumvention Law.
+
+  No covered work shall be deemed part of an effective technological
+measure under any applicable law fulfilling obligations under article
+11 of the WIPO copyright treaty adopted on 20 December 1996, or
+similar laws prohibiting or restricting circumvention of such
+measures.
+
+  When you convey a covered work, you waive any legal power to forbid
+circumvention of technological measures to the extent such circumvention
+is effected by exercising rights under this License with respect to
+the covered work, and you disclaim any intention to limit operation or
+modification of the work as a means of enforcing, against the work's
+users, your or third parties' legal rights to forbid circumvention of
+technological measures.
+
+  4. Conveying Verbatim Copies.
+
+  You may convey verbatim copies of the Program's source code as you
+receive it, in any medium, provided that you conspicuously and
+appropriately publish on each copy an appropriate copyright notice;
+keep intact all notices stating that this License and any
+non-permissive terms added in accord with section 7 apply to the code;
+keep intact all notices of the absence of any warranty; and give all
+recipients a copy of this License along with the Program.
+
+  You may charge any price or no price for each copy that you convey,
+and you may offer support or warranty protection for a fee.
+
+  5. Conveying Modified Source Versions.
+
+  You may convey a work based on the Program, or the modifications to
+produce it from the Program, in the form of source code under the
+terms of section 4, provided that you also meet all of these conditions:
+
+    a) The work must carry prominent notices stating that you modified
+    it, and giving a relevant date.
+
+    b) The work must carry prominent notices stating that it is
+    released under this License and any conditions added under section
+    7.  This requirement modifies the requirement in section 4 to
+    "keep intact all notices".
+
+    c) You must license the entire work, as a whole, under this
+    License to anyone who comes into possession of a copy.  This
+    License will therefore apply, along with any applicable section 7
+    additional terms, to the whole of the work, and all its parts,
+    regardless of how they are packaged.  This License gives no
+    permission to license the work in any other way, but it does not
+    invalidate such permission if you have separately received it.
+
+    d) If the work has interactive user interfaces, each must display
+    Appropriate Legal Notices; however, if the Program has interactive
+    interfaces that do not display Appropriate Legal Notices, your
+    work need not make them do so.
+
+  A compilation of a covered work with other separate and independent
+works, which are not by their nature extensions of the covered work,
+and which are not combined with it such as to form a larger program,
+in or on a volume of a storage or distribution medium, is called an
+"aggregate" if the compilation and its resulting copyright are not
+used to limit the access or legal rights of the compilation's users
+beyond what the individual works permit.  Inclusion of a covered work
+in an aggregate does not cause this License to apply to the other
+parts of the aggregate.
+
+  6. Conveying Non-Source Forms.
+
+  You may convey a covered work in object code form under the terms
+of sections 4 and 5, provided that you also convey the
+machine-readable Corresponding Source under the terms of this License,
+in one of these ways:
+
+    a) Convey the object code in, or embodied in, a physical product
+    (including a physical distribution medium), accompanied by the
+    Corresponding Source fixed on a durable physical medium
+    customarily used for software interchange.
+
+    b) Convey the object code in, or embodied in, a physical product
+    (including a physical distribution medium), accompanied by a
+    written offer, valid for at least three years and valid for as
+    long as you offer spare parts or customer support for that product
+    model, to give anyone who possesses the object code either (1) a
+    copy of the Corresponding Source for all the software in the
+    product that is covered by this License, on a durable physical
+    medium customarily used for software interchange, for a price no
+    more than your reasonable cost of physically performing this
+    conveying of source, or (2) access to copy the
+    Corresponding Source from a network server at no charge.
+
+    c) Convey individual copies of the object code with a copy of the
+    written offer to provide the Corresponding Source.  This
+    alternative is allowed only occasionally and noncommercially, and
+    only if you received the object code with such an offer, in accord
+    with subsection 6b.
+
+    d) Convey the object code by offering access from a designated
+    place (gratis or for a charge), and offer equivalent access to the
+    Corresponding Source in the same way through the same place at no
+    further charge.  You need not require recipients to copy the
+    Corresponding Source along with the object code.  If the place to
+    copy the object code is a network server, the Corresponding Source
+    may be on a different server (operated by you or a third party)
+    that supports equivalent copying facilities, provided you maintain
+    clear directions next to the object code saying where to find the
+    Corresponding Source.  Regardless of what server hosts the
+    Corresponding Source, you remain obligated to ensure that it is
+    available for as long as needed to satisfy these requirements.
+
+    e) Convey the object code using peer-to-peer transmission, provided
+    you inform other peers where the object code and Corresponding
+    Source of the work are being offered to the general public at no
+    charge under subsection 6d.
+
+  A separable portion of the object code, whose source code is excluded
+from the Corresponding Source as a System Library, need not be
+included in conveying the object code work.
+
+  A "User Product" is either (1) a "consumer product", which means any
+tangible personal property which is normally used for personal, family,
+or household purposes, or (2) anything designed or sold for incorporation
+into a dwelling.  In determining whether a product is a consumer product,
+doubtful cases shall be resolved in favor of coverage.  For a particular
+product received by a particular user, "normally used" refers to a
+typical or common use of that class of product, regardless of the status
+of the particular user or of the way in which the particular user
+actually uses, or expects or is expected to use, the product.  A product
+is a consumer product regardless of whether the product has substantial
+commercial, industrial or non-consumer uses, unless such uses represent
+the only significant mode of use of the product.
+
+  "Installation Information" for a User Product means any methods,
+procedures, authorization keys, or other information required to install
+and execute modified versions of a covered work in that User Product from
+a modified version of its Corresponding Source.  The information must
+suffice to ensure that the continued functioning of the modified object
+code is in no case prevented or interfered with solely because
+modification has been made.
+
+  If you convey an object code work under this section in, or with, or
+specifically for use in, a User Product, and the conveying occurs as
+part of a transaction in which the right of possession and use of the
+User Product is transferred to the recipient in perpetuity or for a
+fixed term (regardless of how the transaction is characterized), the
+Corresponding Source conveyed under this section must be accompanied
+by the Installation Information.  But this requirement does not apply
+if neither you nor any third party retains the ability to install
+modified object code on the User Product (for example, the work has
+been installed in ROM).
+
+  The requirement to provide Installation Information does not include a
+requirement to continue to provide support service, warranty, or updates
+for a work that has been modified or installed by the recipient, or for
+the User Product in which it has been modified or installed.  Access to a
+network may be denied when the modification itself materially and
+adversely affects the operation of the network or violates the rules and
+protocols for communication across the network.
+
+  Corresponding Source conveyed, and Installation Information provided,
+in accord with this section must be in a format that is publicly
+documented (and with an implementation available to the public in
+source code form), and must require no special password or key for
+unpacking, reading or copying.
+
+  7. Additional Terms.
+
+  "Additional permissions" are terms that supplement the terms of this
+License by making exceptions from one or more of its conditions.
+Additional permissions that are applicable to the entire Program shall
+be treated as though they were included in this License, to the extent
+that they are valid under applicable law.  If additional permissions
+apply only to part of the Program, that part may be used separately
+under those permissions, but the entire Program remains governed by
+this License without regard to the additional permissions.
+
+  When you convey a copy of a covered work, you may at your option
+remove any additional permissions from that copy, or from any part of
+it.  (Additional permissions may be written to require their own
+removal in certain cases when you modify the work.)  You may place
+additional permissions on material, added by you to a covered work,
+for which you have or can give appropriate copyright permission.
+
+  Notwithstanding any other provision of this License, for material you
+add to a covered work, you may (if authorized by the copyright holders of
+that material) supplement the terms of this License with terms:
+
+    a) Disclaiming warranty or limiting liability differently from the
+    terms of sections 15 and 16 of this License; or
+
+    b) Requiring preservation of specified reasonable legal notices or
+    author attributions in that material or in the Appropriate Legal
+    Notices displayed by works containing it; or
+
+    c) Prohibiting misrepresentation of the origin of that material, or
+    requiring that modified versions of such material be marked in
+    reasonable ways as different from the original version; or
+
+    d) Limiting the use for publicity purposes of names of licensors or
+    authors of the material; or
+
+    e) Declining to grant rights under trademark law for use of some
+    trade names, trademarks, or service marks; or
+
+    f) Requiring indemnification of licensors and authors of that
+    material by anyone who conveys the material (or modified versions of
+    it) with contractual assumptions of liability to the recipient, for
+    any liability that these contractual assumptions directly impose on
+    those licensors and authors.
+
+  All other non-permissive additional terms are considered "further
+restrictions" within the meaning of section 10.  If the Program as you
+received it, or any part of it, contains a notice stating that it is
+governed by this License along with a term that is a further
+restriction, you may remove that term.  If a license document contains
+a further restriction but permits relicensing or conveying under this
+License, you may add to a covered work material governed by the terms
+of that license document, provided that the further restriction does
+not survive such relicensing or conveying.
+
+  If you add terms to a covered work in accord with this section, you
+must place, in the relevant source files, a statement of the
+additional terms that apply to those files, or a notice indicating
+where to find the applicable terms.
+
+  Additional terms, permissive or non-permissive, may be stated in the
+form of a separately written license, or stated as exceptions;
+the above requirements apply either way.
+
+  8. Termination.
+
+  You may not propagate or modify a covered work except as expressly
+provided under this License.  Any attempt otherwise to propagate or
+modify it is void, and will automatically terminate your rights under
+this License (including any patent licenses granted under the third
+paragraph of section 11).
+
+  However, if you cease all violation of this License, then your
+license from a particular copyright holder is reinstated (a)
+provisionally, unless and until the copyright holder explicitly and
+finally terminates your license, and (b) permanently, if the copyright
+holder fails to notify you of the violation by some reasonable means
+prior to 60 days after the cessation.
+
+  Moreover, your license from a particular copyright holder is
+reinstated permanently if the copyright holder notifies you of the
+violation by some reasonable means, this is the first time you have
+received notice of violation of this License (for any work) from that
+copyright holder, and you cure the violation prior to 30 days after
+your receipt of the notice.
+
+  Termination of your rights under this section does not terminate the
+licenses of parties who have received copies or rights from you under
+this License.  If your rights have been terminated and not permanently
+reinstated, you do not qualify to receive new licenses for the same
+material under section 10.
+
+  9. Acceptance Not Required for Having Copies.
+
+  You are not required to accept this License in order to receive or
+run a copy of the Program.  Ancillary propagation of a covered work
+occurring solely as a consequence of using peer-to-peer transmission
+to receive a copy likewise does not require acceptance.  However,
+nothing other than this License grants you permission to propagate or
+modify any covered work.  These actions infringe copyright if you do
+not accept this License.  Therefore, by modifying or propagating a
+covered work, you indicate your acceptance of this License to do so.
+
+  10. Automatic Licensing of Downstream Recipients.
+
+  Each time you convey a covered work, the recipient automatically
+receives a license from the original licensors, to run, modify and
+propagate that work, subject to this License.  You are not responsible
+for enforcing compliance by third parties with this License.
+
+  An "entity transaction" is a transaction transferring control of an
+organization, or substantially all assets of one, or subdividing an
+organization, or merging organizations.  If propagation of a covered
+work results from an entity transaction, each party to that
+transaction who receives a copy of the work also receives whatever
+licenses to the work the party's predecessor in interest had or could
+give under the previous paragraph, plus a right to possession of the
+Corresponding Source of the work from the predecessor in interest, if
+the predecessor has it or can get it with reasonable efforts.
+
+  You may not impose any further restrictions on the exercise of the
+rights granted or affirmed under this License.  For example, you may
+not impose a license fee, royalty, or other charge for exercise of
+rights granted under this License, and you may not initiate litigation
+(including a cross-claim or counterclaim in a lawsuit) alleging that
+any patent claim is infringed by making, using, selling, offering for
+sale, or importing the Program or any portion of it.
+
+  11. Patents.
+
+  A "contributor" is a copyright holder who authorizes use under this
+License of the Program or a work on which the Program is based.  The
+work thus licensed is called the contributor's "contributor version".
+
+  A contributor's "essential patent claims" are all patent claims
+owned or controlled by the contributor, whether already acquired or
+hereafter acquired, that would be infringed by some manner, permitted
+by this License, of making, using, or selling its contributor version,
+but do not include claims that would be infringed only as a
+consequence of further modification of the contributor version.  For
+purposes of this definition, "control" includes the right to grant
+patent sublicenses in a manner consistent with the requirements of
+this License.
+
+  Each contributor grants you a non-exclusive, worldwide, royalty-free
+patent license under the contributor's essential patent claims, to
+make, use, sell, offer for sale, import and otherwise run, modify and
+propagate the contents of its contributor version.
+
+  In the following three paragraphs, a "patent license" is any express
+agreement or commitment, however denominated, not to enforce a patent
+(such as an express permission to practice a patent or covenant not to
+sue for patent infringement).  To "grant" such a patent license to a
+party means to make such an agreement or commitment not to enforce a
+patent against the party.
+
+  If you convey a covered work, knowingly relying on a patent license,
+and the Corresponding Source of the work is not available for anyone
+to copy, free of charge and under the terms of this License, through a
+publicly available network server or other readily accessible means,
+then you must either (1) cause the Corresponding Source to be so
+available, or (2) arrange to deprive yourself of the benefit of the
+patent license for this particular work, or (3) arrange, in a manner
+consistent with the requirements of this License, to extend the patent
+license to downstream recipients.  "Knowingly relying" means you have
+actual knowledge that, but for the patent license, your conveying the
+covered work in a country, or your recipient's use of the covered work
+in a country, would infringe one or more identifiable patents in that
+country that you have reason to believe are valid.
+
+  If, pursuant to or in connection with a single transaction or
+arrangement, you convey, or propagate by procuring conveyance of, a
+covered work, and grant a patent license to some of the parties
+receiving the covered work authorizing them to use, propagate, modify
+or convey a specific copy of the covered work, then the patent license
+you grant is automatically extended to all recipients of the covered
+work and works based on it.
+
+  A patent license is "discriminatory" if it does not include within
+the scope of its coverage, prohibits the exercise of, or is
+conditioned on the non-exercise of one or more of the rights that are
+specifically granted under this License.  You may not convey a covered
+work if you are a party to an arrangement with a third party that is
+in the business of distributing software, under which you make payment
+to the third party based on the extent of your activity of conveying
+the work, and under which the third party grants, to any of the
+parties who would receive the covered work from you, a discriminatory
+patent license (a) in connection with copies of the covered work
+conveyed by you (or copies made from those copies), or (b) primarily
+for and in connection with specific products or compilations that
+contain the covered work, unless you entered into that arrangement,
+or that patent license was granted, prior to 28 March 2007.
+
+  Nothing in this License shall be construed as excluding or limiting
+any implied license or other defenses to infringement that may
+otherwise be available to you under applicable patent law.
+
+  12. No Surrender of Others' Freedom.
+
+  If conditions are imposed on you (whether by court order, agreement or
+otherwise) that contradict the conditions of this License, they do not
+excuse you from the conditions of this License.  If you cannot convey a
+covered work so as to satisfy simultaneously your obligations under this
+License and any other pertinent obligations, then as a consequence you may
+not convey it at all.  For example, if you agree to terms that obligate you
+to collect a royalty for further conveying from those to whom you convey
+the Program, the only way you could satisfy both those terms and this
+License would be to refrain entirely from conveying the Program.
+
+  13. Remote Network Interaction; Use with the GNU General Public License.
+
+  Notwithstanding any other provision of this License, if you modify the
+Program, your modified version must prominently offer all users
+interacting with it remotely through a computer network (if your version
+supports such interaction) an opportunity to receive the Corresponding
+Source of your version by providing access to the Corresponding Source
+from a network server at no charge, through some standard or customary
+means of facilitating copying of software.  This Corresponding Source
+shall include the Corresponding Source for any work covered by version 3
+of the GNU General Public License that is incorporated pursuant to the
+following paragraph.
+
+  Notwithstanding any other provision of this License, you have
+permission to link or combine any covered work with a work licensed
+under version 3 of the GNU General Public License into a single
+combined work, and to convey the resulting work.  The terms of this
+License will continue to apply to the part which is the covered work,
+but the work with which it is combined will remain governed by version
+3 of the GNU General Public License.
+
+  14. Revised Versions of this License.
+
+  The Free Software Foundation may publish revised and/or new versions of
+the GNU Affero General Public License from time to time.  Such new versions
+will be similar in spirit to the present version, but may differ in detail to
+address new problems or concerns.
+
+  Each version is given a distinguishing version number.  If the
+Program specifies that a certain numbered version of the GNU Affero General
+Public License "or any later version" applies to it, you have the
+option of following the terms and conditions either of that numbered
+version or of any later version published by the Free Software
+Foundation.  If the Program does not specify a version number of the
+GNU Affero General Public License, you may choose any version ever published
+by the Free Software Foundation.
+
+  If the Program specifies that a proxy can decide which future
+versions of the GNU Affero General Public License can be used, that proxy's
+public statement of acceptance of a version permanently authorizes you
+to choose that version for the Program.
+
+  Later license versions may give you additional or different
+permissions.  However, no additional obligations are imposed on any
+author or copyright holder as a result of your choosing to follow a
+later version.
+
+  15. Disclaimer of Warranty.
+
+  THERE IS NO WARRANTY FOR THE PROGRAM, TO THE EXTENT PERMITTED BY
+APPLICABLE LAW.  EXCEPT WHEN OTHERWISE STATED IN WRITING THE COPYRIGHT
+HOLDERS AND/OR OTHER PARTIES PROVIDE THE PROGRAM "AS IS" WITHOUT WARRANTY
+OF ANY KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING, BUT NOT LIMITED TO,
+THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+PURPOSE.  THE ENTIRE RISK AS TO THE QUALITY AND PERFORMANCE OF THE PROGRAM
+IS WITH YOU.  SHOULD THE PROGRAM PROVE DEFECTIVE, YOU ASSUME THE COST OF
+ALL NECESSARY SERVICING, REPAIR OR CORRECTION.
+
+  16. Limitation of Liability.
+
+  IN NO EVENT UNLESS REQUIRED BY APPLICABLE LAW OR AGREED TO IN WRITING
+WILL ANY COPYRIGHT HOLDER, OR ANY OTHER PARTY WHO MODIFIES AND/OR CONVEYS
+THE PROGRAM AS PERMITTED ABOVE, BE LIABLE TO YOU FOR DAMAGES, INCLUDING ANY
+GENERAL, SPECIAL, INCIDENTAL OR CONSEQUENTIAL DAMAGES ARISING OUT OF THE
+USE OR INABILITY TO USE THE PROGRAM (INCLUDING BUT NOT LIMITED TO LOSS OF
+DATA OR DATA BEING RENDERED INACCURATE OR LOSSES SUSTAINED BY YOU OR THIRD
+PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER PROGRAMS),
+EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE POSSIBILITY OF
+SUCH DAMAGES.
+
+  17. Interpretation of Sections 15 and 16.
+
+  If the disclaimer of warranty and limitation of liability provided
+above cannot be given local legal effect according to their terms,
+reviewing courts shall apply local law that most closely approximates
+an absolute waiver of all civil liability in connection with the
+Program, unless a warranty or assumption of liability accompanies a
+copy of the Program in return for a fee.
+
+                     END OF TERMS AND CONDITIONS
+
+            How to Apply These Terms to Your New Programs
+
+  If you develop a new program, and you want it to be of the greatest
+possible use to the public, the best way to achieve this is to make it
+free software which everyone can redistribute and change under these terms.
+
+  To do so, attach the following notices to the program.  It is safest
+to attach them to the start of each source file to most effectively
+state the exclusion of warranty; and each file should have at least
+the "copyright" line and a pointer to where the full notice is found.
+
+    <one line to give the program's name and a brief idea of what it does.>
+    Copyright (C) <year>  <name of author>
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Affero General Public License as published
+    by the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Affero General Public License for more details.
+
+    You should have received a copy of the GNU Affero General Public License
+    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+Also add information on how to contact you by electronic and paper mail.
+
+  If your software can interact with users remotely through a computer
+network, you should also make sure that it provides a way for users to
+get its source.  For example, if your program is a web application, its
+interface could display a "Source" link that leads users to an archive
+of the code.  There are many ways you could offer source, and different
+solutions will be better for different programs; see section 13 for the
+specific requirements.
+
+  You should also get your employer (if you work as a programmer) or school,
+if any, to sign a "copyright disclaimer" for the program, if necessary.
+For more information on this, and how to apply and follow the GNU AGPL, see
+<https://www.gnu.org/licenses/>.
+</script><script>/* Sorting Lab. Algorithm adaptations from 66-m/sorting-visualizer, AGPL-3.0.
+   Self-contained factory: shared by the browser worker and Node correctness tests. */
+function SortingEngine(host) {
+  const ids=['merge','quick','heap','dual','comb','gravity','radix','shell','gnome','shaker','bubble','odd','double','insertion','counting','selection','bucket','cycle','flag','tim'];
+  function create(id,input) {
+    if(!ids.includes(id)) throw new Error('Unknown algorithm');
+    const n=input.length, seen=new Uint8Array(n);
+    for(const v of input) {if(!Number.isInteger(v)||v<0||v>=n||seen[v]) throw new Error('Expected a permutation of 0 through n-1');seen[v]=1;}
+    const s={a:Int32Array.from(input),aux:new Int32Array(0),auxLabel:'No auxiliary array',phase:'Ready',active:[],metrics:{comparisons:0,swaps:0,writes:0,auxWrites:0},iterator:null};
+    const a=s.a,m=s.metrics;
+    function cmp(x,y){m.comparisons++;return x-y;}
+    function set(i,v){a[i]=v;m.writes++;s.active=[i];}
+    function swap(i,j){s.active=[i,j];if(i!==j){const t=a[i];a[i]=a[j];a[j]=t;m.swaps++;m.writes+=2;}}
+    function mark(i,j=i){s.active=[i,j];}
+    function* insertion(lo=0,hi=n-1,gap=1){
+      for(let i=lo+gap;i<=hi;i++){const v=a[i];let j=i;
+        while(j-gap>=lo){mark(j,j-gap);const c=cmp(a[j-gap],v);yield;if(c<=0)break;set(j,a[j-gap]);yield;j-=gap;}
+        set(j,v);yield;
+      }
+    }
+    function* mergeParts(lo,mid,hi){
+      s.phase='Copying a run';const b=new Int32Array(hi-lo+1);s.aux=b;s.auxLabel='Merge buffer';
+      for(let k=lo;k<=hi;k++){b[k-lo]=a[k];m.auxWrites++;mark(k);yield;}
+      s.phase='Merging runs';let i=0,j=mid-lo+1;const endLeft=j;
+      for(let k=lo;k<=hi;k++){let v;if(i>=endLeft)v=b[j++];else if(j>=b.length)v=b[i++];else{v=cmp(b[i],b[j])<=0?b[i++]:b[j++];}set(k,v);yield;}
+    }
+    function* merge(lo=0,hi=n-1){if(lo>=hi)return;const mid=(lo+hi)>>1;yield*merge(lo,mid);yield*merge(mid+1,hi);yield*mergeParts(lo,mid,hi);}
+    function* quick(){const stack=[[0,n-1]];while(stack.length){const [lo,hi]=stack.pop();if(lo>=hi)continue;let i=lo,j=hi;const p=a[(lo+hi)>>1];s.phase='Partitioning around a pivot';
+      while(i<=j){while(true){mark(i);const c=cmp(a[i],p);yield;if(c>=0)break;i++;}while(true){mark(j);const c=cmp(a[j],p);yield;if(c<=0)break;j--;}if(i<=j){swap(i++,j--);yield;}}
+      if(i<hi)stack.push([i,hi]);if(lo<j)stack.push([lo,j]);}}
+    function* dual(){const stack=[[0,n-1]];while(stack.length){const [lo,hi]=stack.pop();if(lo>=hi)continue;s.phase='Partitioning into three regions';if(cmp(a[lo],a[hi])>0)swap(lo,hi);yield;const p=a[lo],q=a[hi];let l=lo+1,g=hi-1,k=l;
+      while(k<=g){mark(k);if(cmp(a[k],p)<0){swap(k,l++);yield;}else if(cmp(a[k],q)>0){while(k<g){mark(g);const c=cmp(a[g],q);yield;if(c<=0)break;g--;}swap(k,g--);yield;if(cmp(a[k],p)<0){swap(k,l++);yield;}}k++;yield;}
+      swap(lo,--l);yield;swap(hi,++g);yield;stack.push([g+1,hi],[l+1,g-1],[lo,l-1]);}}
+    function* heap(){function* sift(root,len){while(root*2+1<len){let c=root*2+1;if(c+1<len&&cmp(a[c],a[c+1])<0)c++;mark(root,c);const order=cmp(a[root],a[c]);yield;if(order>=0)return;swap(root,c);yield;root=c;}}
+      s.phase='Building the heap';for(let i=(n>>1)-1;i>=0;i--)yield*sift(i,n);s.phase='Extracting maximum values';for(let end=n-1;end>0;end--){swap(0,end);yield;yield*sift(0,end);}}
+    function* comb(){let gap=n,changed=true;while(gap>1||changed){gap=Math.max(1,Math.floor(gap*10/13));s.phase='Comparing with gap '+gap;changed=false;for(let i=0;i+gap<n;i++){mark(i,i+gap);if(cmp(a[i],a[i+gap])>0){swap(i,i+gap);changed=true;}yield;}}}
+    function* gravity(){
+      if(n<2)return;s.phase='Building bead columns';const original=a.slice();s.aux=new Int32Array(n);s.auxLabel='Beads per column';
+      for(let i=0;i<n;i++){s.aux[original[i]]++;m.auxWrites++;mark(i);yield;}
+      for(let i=n-2;i>=0;i--){s.aux[i]+=s.aux[i+1];m.auxWrites++;yield;}
+      // For unique ranks 0..n-1, each descending bead column has one more bead.
+      // Sample at most 300 settled layers, without allocating a quadratic bead grid.
+      const stride=Math.max(1,Math.ceil((n-1)/300));
+      for(let t=Math.min(stride,n-1);;t=Math.min(n-1,t+stride)){
+        s.phase='Settling beads · layer '+t+' / '+(n-1);const cap=n-1-t;
+        for(let row=0;row<n;row++){set(row,Math.min(original[row],cap)+Math.max(0,t-n+row+1));if(row%128===0)yield;}
+        yield;if(t===n-1)break;
+      }
+    }
+    function* radix(){const buckets=Array.from({length:10},()=>[]);s.aux=new Int32Array(10);s.auxLabel='Digit buckets 0–9';
+      for(let place=1;place<n;place*=10){s.phase='Collecting digit · '+place+'s place';for(let d=0;d<10;d++){buckets[d]=[];s.aux[d]=0;}
+        for(let i=0;i<n;i++){const d=Math.floor(a[i]/place)%10;buckets[d].push(a[i]);s.aux[d]++;m.auxWrites++;mark(i);yield;}
+        let pos=0;const starts=[];for(let d=0;d<10;d++){starts[d]=pos;pos+=buckets[d].length;}
+        s.phase='Writing digit groups · '+place+'s place';const max=Math.max(...buckets.map(b=>b.length));
+        for(let i=0;i<max;i++)for(let d=0;d<10;d++)if(i<buckets[d].length){set(starts[d]++,buckets[d][i]);yield;}
+      }
+    }
+    function* shell(){for(let gap=Math.floor(n/2);gap>0;gap=Math.floor(gap/2)){s.phase='Insertion with gap '+gap;yield*insertion(0,n-1,gap);}}
+    function* gnome(){let i=1;while(i<n){if(i===0){i=1;continue;}mark(i-1,i);if(cmp(a[i-1],a[i])<=0)i++;else{swap(i-1,i);i--;}yield;}}
+    function* shaker(){let lo=0,hi=n-1,changed=true;while(changed&&lo<hi){changed=false;s.phase='Sweeping forward';for(let i=lo;i<hi;i++){mark(i,i+1);if(cmp(a[i],a[i+1])>0){swap(i,i+1);changed=true;}yield;}if(!changed)break;hi--;changed=false;s.phase='Sweeping backward';for(let i=hi;i>lo;i--){mark(i-1,i);if(cmp(a[i-1],a[i])>0){swap(i-1,i);changed=true;}yield;}lo++;}}
+    function* bubble(){for(let end=n-1;end>0;end--){let changed=false;s.phase='Bubbling maximum to position '+end;for(let i=0;i<end;i++){mark(i,i+1);if(cmp(a[i],a[i+1])>0){swap(i,i+1);changed=true;}yield;}if(!changed)break;}}
+    function* odd(){let changed=true;while(changed){changed=false;for(const parity of [1,0]){s.phase=parity?'Odd pairs':'Even pairs';for(let i=parity;i+1<n;i+=2){mark(i,i+1);if(cmp(a[i],a[i+1])>0){swap(i,i+1);changed=true;}yield;}}}}
+    function* double(){for(let lo=0,hi=n-1;lo<hi;lo++,hi--){s.phase='Finding minimum and maximum';let min=lo,max=lo;for(let j=lo+1;j<=hi;j++){mark(j);if(cmp(a[j],a[min])<0)min=j;if(cmp(a[j],a[max])>0)max=j;yield;}swap(lo,min);yield;if(max===lo)max=min;swap(hi,max);yield;}}
+    function* counting(){s.aux=new Int32Array(n);s.auxLabel='Occurrences per value';s.phase='Counting into auxiliary array';for(let i=0;i<n;i++){s.aux[a[i]]++;m.auxWrites++;mark(i);yield;}s.phase='Writing sorted values';let p=0;for(let v=0;v<n;v++){while(s.aux[v]>0){set(p++,v);s.aux[v]--;m.auxWrites++;yield;}}}
+    function* selection(){for(let i=0;i<n-1;i++){s.phase='Finding next minimum';let min=i;for(let j=i+1;j<n;j++){mark(j,min);if(cmp(a[j],a[min])<0)min=j;yield;}swap(i,min);yield;}}
+    function* cycle(){for(let start=0;start<n-1;start++){let item=a[start],pos=start;s.phase='Finding final position';for(let j=start+1;j<n;j++){mark(j);if(cmp(a[j],item)<0)pos++;yield;}if(pos===start)continue;
+      let tmp=a[pos];set(pos,item);item=tmp;yield;
+      while(pos!==start){pos=start;for(let j=start+1;j<n;j++){mark(j);if(cmp(a[j],item)<0)pos++;yield;}tmp=a[pos];set(pos,item);item=tmp;yield;}
+    }}
+    function* flag(){s.aux=new Int32Array(n);s.auxLabel='Remaining values per bucket';s.phase='Counting destination buckets';for(let i=0;i<n;i++){s.aux[a[i]]++;m.auxWrites++;mark(i);yield;}
+      const start=new Int32Array(n);s.phase='Calculating bucket positions';for(let i=1;i<n;i++){start[i]=start[i-1]+s.aux[i-1];m.auxWrites++;yield;}
+      s.phase='Following destination cycles';for(let b=0;b<n;b++){while(s.aux[b]>0){const origin=start[b];let from=origin,num=a[from];do{const to=start[num]++;s.aux[num]--;m.auxWrites+=2;const temp=a[to];set(to,num);num=temp;from=to;yield;}while(from!==origin);}}
+    }
+    function* tim(){s.phase='Insertion sorting 32-item runs';for(let lo=0;lo<n;lo+=32)yield*insertion(lo,Math.min(n-1,lo+31));for(let size=32;size<n;size*=2)for(let lo=0;lo<n;lo+=2*size){const mid=Math.min(lo+size-1,n-1),hi=Math.min(lo+2*size-1,n-1);if(mid<hi)yield*mergeParts(lo,mid,hi);}}
+    const algorithms={merge,quick,heap,dual,comb,gravity,radix,shell,gnome,shaker,bubble,odd,double,insertion,counting,selection,bucket:counting,cycle,flag,tim};
+    s.phase='Sorting';s.iterator=algorithms[id]();return s;
+  }
+  if(host){let run=null,token=0,computeMs=0,done=false;
+    function snapshot(includeArray=true){
+      const bins=run.aux.length<=100?Array.from(run.aux):Array.from({length:100},(_,b)=>{const lo=Math.floor(b*run.aux.length/100),hi=Math.floor((b+1)*run.aux.length/100);let sum=0;for(let i=lo;i<hi;i++)sum+=run.aux[i];return sum/(hi-lo);});
+      const msg={type:'frame',token,done,phase:done?'Complete':run.phase,metrics:{...run.metrics,computeMs},active:run.active,aux:bins,auxLength:run.aux.length,auxLabel:run.auxLabel};
+      if(includeArray){msg.array=run.a.slice();host.postMessage(msg,[msg.array.buffer]);}else host.postMessage(msg);
+    }
+    host.onmessage=e=>{try{const q=e.data;if(q.type==='init'){token=q.token;run=create(q.algorithm,q.array);computeMs=0;done=false;snapshot();}
+      else if(q.type==='tick'&&run&&q.token===token){const start=performance.now(),budget=Math.max(1,Math.min(q.budget||1,2000000)),limit=q.fast?30:12;let steps=0;
+        while(!done&&steps<budget){done=run.iterator.next().done;steps++;if(steps%128===0&&performance.now()-start>=limit)break;}
+        computeMs+=performance.now()-start;snapshot(!q.fast||done);
+      }}catch(err){host.postMessage({type:'error',token,message:err.message});}};
+  }
+  return {ids,create};
+}
+if(typeof module!=='undefined')module.exports=SortingEngine;
+</script><script>(()=>{'use strict';
+const $=id=>document.getElementById(id),fmt=new Intl.NumberFormat('en-US');
+const algorithms=[
+ ['merge','Merge Sort','Divide & conquer','O(n log n)','Split into smaller runs, then merge the ordered runs back together.','Thin rainbow petals combine into larger curves before settling on the rim.',0],
+ ['quick','Quick Sort · middle pivot','Partition','O(n log n) average','Use the middle item as a pivot. Separate smaller and larger values, then repeat within each region.','Color regions separate and the empty center grows as large placement errors disappear.',34],
+ ['heap','Heap Sort','Selection','O(n log n)','Build a maximum heap, then repeatedly move its largest value to the end of the array.','A finished arc grows backward while the remaining heap keeps rearranging.',68],
+ ['dual','Quick Sort · dual pivot','Partition','O(n log n) average','Use two pivots to partition the values into low, middle, and high regions.','Three-way partitions produce distinct regions that resolve in smaller and smaller sections.',101],
+ ['comb','Comb Sort','Exchange','O(n²) worst','Compare distant pairs and shrink the gap by about 1.3 each pass, finishing with adjacent pairs.','Big errors disappear first. Changing gaps produce bands that become finer toward the rim.',132],
+ ['gravity','Gravity Sort','Distribution','Sampled bead simulation','Simulate integer values as rows of beads settling in columns. Uses bounded memory and samples up to 300 layers.','Many values change together, creating a flowing shape. Here dots are row totals, not falling beads.',167],
+ ['radix','Radix Sort · LSD, base 10','Distribution','O(d × (n + 10))','Stably group by ones, tens, hundreds, and so on. Write back across the ten buckets in turn.','Repeated petals and bands reorganize together. Watch the ten digit buckets fill below.',202],
+ ['shell','Shell Sort','Insertion','O(n²) worst · halving gaps','Insertion-sort interleaved sequences, halving their spacing on each pass until the gap is one.','Regularly spaced sequences create repeating structure, followed by finer corrections.',232],
+ ['gnome','Gnome Sort','Exchange','O(n²) average','Walk forward when neighbors are ordered. Otherwise swap them and step backward to repair the order.','An ordered prefix grows through tiny backward repairs, leaving the untouched remainder scattered.',268],
+ ['shaker','Shaker Sort','Exchange','O(n²) average','Bubble in both directions: large values go to the end, small values to the beginning.','A finished region grows away from the wraparound seam in both directions.',284],
+ ['bubble','Bubble Sort','Exchange','O(n²) average','Swap reversed neighbors. Each forward pass delivers the largest remaining value to the end.','A finished outer arc grows while the remaining cloud shifts through many small movements.',303],
+ ['odd','Odd Even Sort','Exchange','O(n²) average','Alternate between odd-position neighbor pairs and even-position pairs until no swaps remain.','Distributed neighbor exchanges organize the cloud in alternating waves.',322],
+ ['double','Double Selection Sort','Selection','O(n²)','Find the smallest and largest remaining values, then put them at opposite ends.','The outer arc grows at both ends while the middle cloud stays relatively untouched.',340],
+ ['insertion','Insertion Sort','Insertion','O(n²) average','Take the next value and shift it into its place within the ordered prefix, like sorting cards in your hand.','A smooth ordered curve consumes the scattered region. Try a nearly sorted input.',358],
+ ['counting','Counting Sort','Distribution','O(n + k)','Count each value in an auxiliary array, then write the values back in order. Here k equals the element count.','The circle initially stays still while the counters fill. Then a clean sweep writes the rim.',391],
+ ['selection','Selection Sort','Selection','O(n²)','Search for the smallest remaining value and swap it into the next unfilled position.','A clean arc grows while most of the cloud stays still. Searching costs comparisons, not writes.',424],
+ ['bucket','Bucket Sort · video variant','Distribution','O(n + k)','The video uses one counter per integer value, making this variant equivalent to counting sort.','The auxiliary counters fill first; then the visible array is rewritten in a clean sweep.',456],
+ ['cycle','Cycle Sort','Write minimizing','O(n²)','Count smaller values to find an item’s final position. Place it there, then follow the displaced item.','Interior dots resolve directly onto the rim at scattered positions. Few writes can hide many comparisons.',489],
+ ['flag','American Flag Sort · video variant','Distribution','O(n) for these ranks','Use one bucket per value, calculate destination positions, then follow cycles to place each value.','After the auxiliary preparation, scattered interior dots jump to their final positions on the rim.',535],
+ ['tim','Tim Sort · video variant','Hybrid','O(n log n)','Insertion-sort fixed runs of 32, then merge progressively larger runs. This is a simplified TimSort variant.','Fine ordered curves merge into larger petals and eventually into the finished circle.',567]
+];
+const slow=new Set(['gnome','shaker','bubble','odd','double','insertion','selection','cycle']);
+const speeds=[1,10,100,1000,5000,20000,100000,1000000];
+$('algorithm').replaceChildren(...algorithms.map(([id,name])=>{const o=document.createElement('option');o.value=id;o.textContent=name;return o;}));
+const canvas=$('plot'),ctx=canvas.getContext('2d',{alpha:false}),auxcanvas=$('auxplot'),auxctx=auxcanvas.getContext('2d');
+let array=new Int32Array(0),initial=null,worker=null,token=0,ready=false,pending=false,running=false,done=false,started=false,fast=false;
+let sin,cos,palette,pixels,image,dirty=true,lastAux=[],lastPaint=0,lastPhase='',lastSample=0,finalPositions=0;
+let lastMetrics={comparisons:0,writes:0,auxWrites:0,swaps:0,computeMs:0};
+const workerUrl=URL.createObjectURL(new Blob(['('+SortingEngine.toString()+')(self);'],{type:'application/javascript'}));
+function seeded(n,pattern,seed){const a=Int32Array.from({length:n},(_,i)=>i);let s=seed>>>0;const rand=()=>{s=(Math.imul(s,1664525)+1013904223)>>>0;return s/4294967296;};const swap=(i,j)=>{const t=a[i];a[i]=a[j];a[j]=t;};
+ if(pattern==='reverse')a.reverse();else if(pattern==='random')for(let i=n-1;i>0;i--)swap(i,Math.floor(rand()*(i+1)));else if(pattern==='almost')for(let k=0;k<Math.max(1,Math.floor(n*.01));k++){const i=Math.floor(rand()*n);swap(i,Math.min(n-1,i+1+Math.floor(rand()*8)));}return a;}
+function rgb(h){const s=.76,l=.66,a=s*Math.min(l,1-l);const f=n=>{const k=(n+h/30)%12;return Math.round((l-a*Math.max(-1,Math.min(k-3,9-k,1)))*255);};return (255<<24)|(f(4)<<16)|(f(8)<<8)|f(0);}
+function prepare(){const n=array.length;sin=new Float32Array(n);cos=new Float32Array(n);palette=new Uint32Array(n);for(let i=0;i<n;i++){const t=i/n*Math.PI*2;sin[i]=Math.sin(t);cos[i]=Math.cos(t);palette[i]=rgb((i/n*360+260)%360);}dirty=true;}
+function resize(){const side=Math.max(1,Math.min(1100,Math.round(canvas.clientWidth*Math.min(devicePixelRatio||1,2))));if(canvas.width!==side||canvas.height!==side){canvas.width=canvas.height=side;image=ctx.createImageData(side,side);pixels=new Uint32Array(image.data.buffer);dirty=true;}const w=Math.round(auxcanvas.clientWidth*Math.min(devicePixelRatio||1,2));if(auxcanvas.width!==w){auxcanvas.width=w;auxcanvas.height=140;}drawAux();}
+function draw(){if(!image||!array.length)return;const w=canvas.width,c=w/2,R=w*.435,n=array.length,size=n<=256?Math.max(2,Math.round(w/180)):n<=5000?2:1;
+ pixels.fill(0xff140e0b);finalPositions=0;
+ for(let i=0;i<n;i++){const v=array[i];if(v===i)finalPositions++;const d=Math.abs(i-v),r=R*(1-2*Math.min(d,n-d)/n),x=Math.floor(c+sin[i]*r),y=Math.floor(c-cos[i]*r),color=palette[v];for(let dy=0;dy<size;dy++)for(let dx=0;dx<size;dx++){const xx=x+dx,yy=y+dy;if(xx>=0&&xx<w&&yy>=0&&yy<w)pixels[yy*w+xx]=color;}}
+ ctx.putImageData(image,0,0);ctx.strokeStyle='#293249';ctx.lineWidth=1;ctx.beginPath();ctx.arc(c,c,R+3,0,Math.PI*2);ctx.stroke();
+ $('placed').textContent=(finalPositions/n*100).toFixed(1)+'%';canvas.setAttribute('aria-label',`${fmt.format(n)} values; ${(finalPositions/n*100).toFixed(1)} percent in their final positions.`);dirty=false;
+}
+function drawAux(){const w=auxcanvas.width,h=auxcanvas.height;auxctx.clearRect(0,0,w,h);const bins=lastAux.length?lastAux:Array(100).fill(0),max=Math.max(1,...bins),bw=w/bins.length;for(let i=0;i<bins.length;i++){const bh=lastAux.length?Math.max(2,bins[i]/max*(h-10)):2;auxctx.fillStyle=lastAux.length?'#839bcc':'#263148';auxctx.fillRect(i*bw,h-bh,Math.max(1,bw-3),bh);}}
+function phase(text){if(text!==lastPhase){$('phase').textContent=text;lastPhase=text;}}
+function state(value){$('state-pill').textContent=value;$('state-pill').dataset.state=value.toLowerCase();}
+function controls(){
+ $('play').textContent=running?'Ⅱ Pause':done?'↻ Replay':started?'▶ Resume':'▶ Start sorting';
+ $('play').disabled=!ready;$('step').disabled=!ready||running||done||pending;$('benchmark').disabled=!ready||running;
+}
+function metadata(){const index=algorithms.findIndex(x=>x[0]===$('algorithm').value),a=algorithms[index];$('current-name').textContent=a[1];$('family').textContent=a[2];$('complexity').textContent=a[3];$('description').textContent=a[4];$('watch').textContent=a[5];$('chapter').href='https://www.youtube.com/watch?v=M3OuTtW662Y&t='+a[6]+'s';$('algorithm-index').textContent=String(index+1).padStart(2,'0')+' / 20';
+ const n=Number($('size').value);$('run-note').textContent=slow.has(a[0])&&n>=5000?'This algorithm can need millions or billions of comparisons here. Try 256 or 1,024 elements for a shorter experiment. You can pause or reset anytime.':'Timing includes algorithm instrumentation and excludes waiting between frames. It is not a cross-language benchmark.';
+ $('element-label').textContent=fmt.format(n)+' elements';
+}
+function reset(autoStart=false,benchmark=false){
+ worker?.terminate();token++;ready=false;pending=false;running=false;done=false;started=false;fast=benchmark;lastAux=[];lastMetrics={comparisons:0,writes:0,auxWrites:0,swaps:0,computeMs:0};metrics();
+ const n=Number($('size').value);let seed=Number($('seed').value);if(!Number.isInteger(seed)||seed<0||seed>4294967295){seed=42;$('seed').value='42';}
+ initial=seeded(n,$('pattern').value,seed);array=initial.slice();prepare();metadata();state('Ready');phase('Shuffled and ready');if($('pattern').value!=='random')phase('Input ready');
+ $('aux-title').textContent='Auxiliary workspace';$('aux-count').textContent='No active buffer';$('aux-note').textContent='Temporary buffers and bucket counts appear here as the algorithm works.';drawAux();controls();
+ try{worker=new Worker(workerUrl);worker.onerror=e=>{running=false;ready=false;pending=false;state('Error');phase(e.message||'Worker could not start. Try another browser.');controls();};
+ worker.onmessage=e=>{const q=e.data;if(q.token!==token)return;pending=false;if(q.type==='error'){running=false;ready=false;state('Error');phase(q.message);controls();return;}
+ const wasReady=ready;ready=true;lastMetrics=q.metrics;metrics();if(q.array){array=q.array;dirty=true;}lastAux=q.aux;drawAux();$('aux-title').textContent=q.auxLength?q.auxLabel:'Auxiliary workspace';$('aux-count').textContent=q.auxLength?fmt.format(q.auxLength)+' entries':'No active buffer';$('aux-note').textContent=q.auxLength>100?'Each bar shows the mean of a consecutive group of entries; scale follows the current maximum.':q.auxLength?'Each bar is one auxiliary entry; scale follows the current maximum.':'No auxiliary data is active yet. Small bookkeeping variables are not shown.';
+ if(q.done){running=false;done=true;state('Complete');phase(fast?'Finished without animation':'All values in order');fast=false;dirty=true;}else if(started){phase(q.phase);state(running?(fast?'Timing':'Sorting'):'Paused');}
+ if(!wasReady&&autoStart){running=true;started=true;state(fast?'Timing':'Sorting');}controls();};
+ worker.postMessage({type:'init',token,algorithm:$('algorithm').value,array:initial});
+ }catch(e){state('Error');phase(e.message);}
+}
+function metrics(){$('comparisons').textContent=fmt.format(lastMetrics.comparisons);$('writes').textContent=fmt.format(lastMetrics.writes);$('auxwrites').textContent=fmt.format(lastMetrics.auxWrites);const ms=lastMetrics.computeMs;$('compute').textContent=ms>=1000?(ms/1000).toFixed(2)+' s':ms.toFixed(ms<10?2:1)+' ms';}
+function tick(one=false){if(!ready||pending||done)return;pending=true;const now=performance.now(),sample=now-lastSample>300;if(sample)lastSample=now;worker.postMessage({type:'tick',token,budget:one?1:fast?2000000:speeds[Number($('speed').value)],fast,sample});controls();}
+function play(){if(!ready)return;if(done){reset(true);return;}running=!running;started=true;state(running?(fast?'Timing':'Sorting'):'Paused');controls();}
+function step(){if(!ready||running||done)return;started=true;fast=false;state('Paused');tick(true);}
+$('play').addEventListener('click',play);$('step').addEventListener('click',step);$('reset').addEventListener('click',()=>reset());$('shuffle').addEventListener('click',()=>{const x=new Uint32Array(1);crypto.getRandomValues(x);$('seed').value=x[0];reset();});$('benchmark').addEventListener('click',()=>reset(true,true));
+for(const id of ['algorithm','size','pattern','seed'])$(id).addEventListener('change',()=>reset());
+function speedLabel(){const n=speeds[Number($('speed').value)];$('speed-label').textContent=fmt.format(n)+' step'+(n===1?'':'s')+' / frame';}$('speed').addEventListener('input',speedLabel);
+$('download').addEventListener('click',()=>{const html='<!doctype html>\n'+document.documentElement.outerHTML,url=URL.createObjectURL(new Blob([html],{type:'text/html'})),a=document.createElement('a');a.href=url;a.download='sorting-lab.html';a.click();setTimeout(()=>URL.revokeObjectURL(url),2000);});
+function snapshot(){return {algorithm:$('algorithm').value,elements:array.length,seed:Number($('seed').value),pattern:$('pattern').value,state:$('state-pill').textContent,phase:lastPhase,metrics:{...lastMetrics},correctlyPlaced:finalPositions};}
+async function settle(){const deadline=performance.now()+5000;while((!ready||pending)&&performance.now()<deadline){if($('state-pill').dataset.state==='error')throw new Error(lastPhase);await new Promise(resolve=>setTimeout(resolve,10));}if(!ready||pending)throw new Error('Experiment is still initializing');if(dirty)draw();return snapshot();}
+function registerTools(){const context=document.modelContext;if(!context?.registerTool)return;const abort=new AbortController();window.addEventListener('pagehide',()=>abort.abort(),{once:true});
+ const tools=[{name:'read_sorting_state',description:'Read the selected algorithm, input, playback state, and operation counters.',inputSchema:{type:'object',properties:{},additionalProperties:false},annotations:{readOnlyHint:true},execute:async()=>snapshot()},
+ {name:'configure_sorting_experiment',description:'Select an algorithm, element count, starting order, and seed. Cancels the current run and prepares a fresh paused experiment.',inputSchema:{type:'object',properties:{algorithm:{type:'string',enum:algorithms.map(a=>a[0])},elements:{type:'integer',enum:[64,256,1024,5000,10000,50000]},pattern:{type:'string',enum:['random','almost','reverse','sorted']},seed:{type:'integer',minimum:0,maximum:4294967295}},additionalProperties:false},annotations:{readOnlyHint:false},execute:async q=>{if(!q||typeof q!=='object'||Array.isArray(q))throw new Error('Expected experiment settings');const allowed=['algorithm','elements','pattern','seed'];if(Object.keys(q).some(k=>!allowed.includes(k)))throw new Error('Unknown setting');if(q.algorithm!==undefined&&!algorithms.some(a=>a[0]===q.algorithm))throw new Error('Unknown algorithm');if(q.elements!==undefined&&![64,256,1024,5000,10000,50000].includes(q.elements))throw new Error('Unsupported element count');if(q.pattern!==undefined&&!['random','almost','reverse','sorted'].includes(q.pattern))throw new Error('Unknown starting order');if(q.seed!==undefined&&(!Number.isInteger(q.seed)||q.seed<0||q.seed>4294967295))throw new Error('Invalid seed');for(const [k,id]of [['algorithm','algorithm'],['elements','size'],['pattern','pattern'],['seed','seed']])if(q[k]!==undefined)$(id).value=q[k];reset();return await settle();}},
+ {name:'control_sorting_playback',description:'Start, pause, step, or reset the visible sorting experiment.',inputSchema:{type:'object',properties:{action:{type:'string',enum:['start','pause','step','reset']}},required:['action'],additionalProperties:false},annotations:{readOnlyHint:false},execute:async q=>{if(!q||!['start','pause','step','reset'].includes(q.action)||Object.keys(q).some(k=>k!=='action'))throw new Error('Invalid playback action');if(q.action==='reset')reset();else if(q.action==='pause'){running=false;if(started&&!done)state('Paused');controls();}else{if(!ready)throw new Error('Experiment is initializing; try again');if(q.action==='start'&&!running)play();if(q.action==='step'){if(running)throw new Error('Pause before stepping');if(pending)throw new Error('Previous step is finishing');if(done)throw new Error('Reset the completed run before stepping');step();}}if(q.action!=='start')return await settle();return snapshot();}}];
+ for(const t of tools){try{Promise.resolve(context.registerTool(t,{signal:abort.signal})).catch(()=>{});}catch{}}
+}
+new ResizeObserver(resize).observe(canvas);new ResizeObserver(resize).observe(auxcanvas);speedLabel();reset();resize();registerTools();
+function loop(now){if(dirty&&now-lastPaint>30){draw();lastPaint=now;}if(running&&!pending)tick();requestAnimationFrame(loop);}requestAnimationFrame(loop);
+window.addEventListener('pagehide',()=>{worker?.terminate();URL.revokeObjectURL(workerUrl);},{once:true});
+})();
+
+</script></body></html>
